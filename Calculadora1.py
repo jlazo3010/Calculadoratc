@@ -32,9 +32,6 @@ import json
 
 # ---------------- CONFIGURACIÓN ----------------
 
-# Cargar variables del archivo .env con las claves del S3
-load_dotenv()
-
 AWS_ACCESS_KEY = 'AWS_ACCESS_KEY_ID'
 AWS_SECRET_KEY = 'AWS_SECRET_ACCESS_KEY'
 BUCKET_NAME = 'S3_BUCKET'
