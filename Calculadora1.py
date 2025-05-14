@@ -823,6 +823,8 @@ else:
                             st.stop()
                     print("Se corrio bien modelo AIS")
 
+                    
+
                     a = float(resultado.iloc[0, 2])
 
                     Decil_AIS = obtener_decil_AIS(a)
