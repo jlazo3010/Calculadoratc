@@ -4,7 +4,7 @@ import requests
 def predecir_ais_api(
     df, 
     modelo="AISMaster_Modelo_20241223131859.Rdata",
-    api_url="http://192.168.1.100:5000/predict"  # Cambia esto a la IP de tu servidor Windows
+    api_url="http://172.18.10.49:5000/predict"  # IP correcta del servidor Windows
 ):
     """
     Función cliente para llamar a la API del modelo AIS en un servidor Windows
@@ -64,7 +64,7 @@ if st.button("Ejecutar modelo AIS"):
         resultados = predecir_ais_api(
             df=datos,
             modelo="AISMaster_Modelo_20241223131859.Rdata", 
-            api_url="http://192.168.1.100:5000/predict"  # Cambia a la IP de tu servidor
+            api_url="http://172.18.10.49:5000/predict"  # IP correcta del servidor
         )
         
         # Mostrar resultados
