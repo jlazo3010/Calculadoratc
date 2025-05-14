@@ -36,9 +36,9 @@ import json
 # Cargar variables del archivo .env con las claves del S3
 load_dotenv()
 
-AWS_ACCESS_KEY = os.getenv('AWS_ACCESS_KEY')
-AWS_SECRET_KEY = os.getenv('AWS_SECRET_KEY')
-BUCKET_NAME = os.getenv('BUCKET_NAME')
+AWS_ACCESS_KEY = 'AWS_ACCESS_KEY'
+AWS_SECRET_KEY = 'AWS_SECRET_KEY'
+BUCKET_NAME = 'BUCKET_NAME'
 ARCHIVO_S3 = 'tconetcacalculadora.csv'
 BASEID = 'Base_martin.csv'
 CPID = 'CPID.csv'
