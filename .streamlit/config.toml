@@ -1,0 +1,6 @@
+[theme]
+primaryColor = "#000000"         # Color de botones y elementos activos
+backgroundColor = "#00396d"      # Fondo principal azul oscuro
+secondaryBackgroundColor = "#FFFFFF"  # Fondo de contenedores
+textColor = "#000000"            # Color de texto por defecto (blanco)
+font = "sans serif"
