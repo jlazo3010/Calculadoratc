@@ -32,9 +32,9 @@ import json
 
 # ---------------- CONFIGURACIÓN ----------------
 
-AWS_ACCESS_KEY = 'AWS_ACCESS_KEY_ID'
-AWS_SECRET_KEY = 'AWS_SECRET_ACCESS_KEY'
-BUCKET_NAME = 'S3_BUCKET'
+AWS_ACCESS_KEY = os.environ['AWS_ACCESS_KEY_ID']
+AWS_SECRET_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
+BUCKET_NAME = os.environ['S3_BUCKET']
 ARCHIVO_S3 = 'tconetcacalculadora.csv'
 BASEID = 'Base_martin.csv'
 CPID = 'CPID.csv'
