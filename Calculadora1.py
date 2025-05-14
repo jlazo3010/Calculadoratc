@@ -10,7 +10,6 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder
 from sklearn.compose import ColumnTransformer
-from modelo_ais import ejecutar_modelo_ais  # Importa la función que te he proporcionado
 from sklearn.base import BaseEstimator, TransformerMixin
 from ais_client import predecir_ais_api
 import numpy as np
