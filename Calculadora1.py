@@ -798,10 +798,12 @@ else:
                     resultadosAIS["EDAD"] = Edad 
 
                     # Aplica el modelo a tu DataFrame resultadosAIS
+
+                    json_resultado = resultadosAIS.to_json(orient='records')[1:-1]
                     with st.spinner("Ejecutando modelo AIS en R..."):
                         try:
                             resultado = predecir_ais_api(
-                                df = resultadosAIS,
+                                df = json_resultado,
                                 modelo='AISMaster_Modelo_20241223131859.R',
                                 api_url="http://172.18.10.49:5000/predict"
                             )
