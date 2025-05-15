@@ -101,6 +101,7 @@ def AISbase():
 # Cargar la tabla MUNICIPIOS
 tabla_AIS = AISbase()
 tabla_AIS["bimboId"] = tabla_AIS["bimboId"].astype(str)
+tabla_AIS.rename(columns={tabla_AIS.columns[0]: 'PE_TC_PE_MUNICIPIO_C'}, inplace=True)
 
 ##Base de usuarios
 def USUARIOS():
