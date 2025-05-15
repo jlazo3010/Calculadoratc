@@ -1,0 +1,6 @@
+r-base
+r-base-dev
+r-cran-Matrix
+r-cran-xgboost
+r-cran-dplyr
+r-cran-fastDummies
