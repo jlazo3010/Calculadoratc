@@ -97,13 +97,15 @@ def ejecutar_modelo_ais(
     # Configurar opciones de R para evitar problemas comunes
     options(warn = 1)  # Mostrar advertencias cuando ocurran
     
+    if (!dir.exists(Sys.getenv("R_LIBS_USER"))) dir.create(Sys.getenv("R_LIBS_USER"), recursive = TRUE)
+    
     # Cargar paquetes necesarios
     packages_needed <- c("Matrix", "xgboost", "dplyr", "fastDummies")
     packages_to_install <- packages_needed[!packages_needed %in% installed.packages()[,"Package"]]
     
     if(length(packages_to_install) > 0) {{
         cat("Instalando paquetes necesarios:", paste(packages_to_install, collapse=", "), "\\n")
-        install.packages(packages_to_install, repos = "https://cloud.r-project.org", quiet = TRUE)
+        install.packages(packages_to_install, repos = "https://cloud.r-project.org", lib = Sys.getenv("R_LIBS_USER"), quiet = TRUE)
     }}
     
     # Intentar cargar los paquetes
