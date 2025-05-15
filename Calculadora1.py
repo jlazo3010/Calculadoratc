@@ -101,6 +101,7 @@ def AISbase():
 # Cargar la tabla MUNICIPIOS
 tabla_AIS = AISbase()
 tabla_AIS["bimboId"] = tabla_AIS["bimboId"].astype(str)
+tabla_AIS.columns.values[0] = 'PE_TC_PE_MUNICIPIO_C'
 
 ##Base de usuarios
 def USUARIOS():
@@ -667,7 +668,6 @@ else:
                     resultadosAIS = tabla_AIS[tabla_AIS["bimboId"] == BimboID]
                     if not resultadosAIS.empty:
                         st.success("✅ Datos encontrados en AIS")
-                        resultadosAIS.columns.values[0] = 'PE_TC_PE_MUNICIPIO_C'
                         resultadosAIS
                     else:
                         st.error("No se encontraron datos para ese BimboID.")
