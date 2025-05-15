@@ -4,7 +4,7 @@ import requests
 def predecir_ais_api(
     df, 
     modelo="AISMaster_Modelo_20241223131859.Rdata",
-    api_url="http://172.18.10.49:5000/predict"  # IP correcta del servidor Windows
+    api_url="https://3332-200-94-61-42.ngrok-free.app/predict"  # IP correcta del servidor Windows
 ):
     """
     Función cliente para llamar a la API del modelo AIS en un servidor Windows
