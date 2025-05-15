@@ -369,10 +369,14 @@ def ejecutar_modelo_ais(
             if exit_code != 0:
                 stderr_output = "\n".join(stderr_lines)
                 stdout_output = "\n".join(stdout_lines)
-                print(f"❌ Error al ejecutar el script R. Código de salida: {exit_code}")
-                print(f"STDOUT: {stdout_output}")
-                print(f"STDERR: {stderr_output}")
-                raise RuntimeError(f"El script R falló con código de salida {exit_code}")
+                mensaje_error = f"""
+            ❌ Error al ejecutar el script R. Código de salida: {exit_code}
+            --- STDOUT ---
+            {stdout_output}
+            --- STDERR ---
+            {stderr_output}
+            """
+                raise RuntimeError(mensaje_error)
             
         except subprocess.TimeoutExpired:
             print("❌ Error: El script R tardó demasiado tiempo en ejecutarse y se canceló.")
