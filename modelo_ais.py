@@ -253,6 +253,11 @@ def ejecutar_modelo_ais(
         r_script_path = temp_r_script.name
         temp_r_script.write(r_script_content)
     
+    # Inicializar variables de archivos temporales para que estén disponibles en el bloque finally
+    input_csv_path = None
+    r_script_path = None
+    pkg_script_path = None
+    
     try:
         # Verificar que R está instalado
         try:
