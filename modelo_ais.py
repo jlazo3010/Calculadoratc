@@ -59,13 +59,29 @@ def ejecutar_modelo_ais(
     # Definir directorios
     output_dir = path_r
     
-    # Verificar si el archivo del modelo existe
-    if not os.path.isabs(nombre_modelo):
-        # Si es una ruta relativa, hacerla absoluta
-        nombre_modelo = os.path.join(path, nombre_modelo)
+    # Verificar si el archivo del modelo existe, probando múltiples ubicaciones
+    posibles_rutas = [
+        nombre_modelo,  # Usar la ruta proporcionada directamente
+        os.path.join(path, nombre_modelo),  # Ruta relativa al directorio actual
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), nombre_modelo),  # Ruta relativa al directorio del script
+        os.path.abspath(nombre_modelo),  # Ruta absoluta
+        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), nombre_modelo)  # Directorio padre
+    ]
     
-    if not os.path.exists(nombre_modelo):
-        raise FileNotFoundError(f"No se encontró el archivo del modelo en: {nombre_modelo}")
+    # Buscar el archivo en todas las posibles rutas
+    modelo_encontrado = False
+    for ruta in posibles_rutas:
+        if os.path.exists(ruta):
+            nombre_modelo = ruta
+            modelo_encontrado = True
+            print(f"✅ Modelo encontrado en: {nombre_modelo}")
+            break
+    
+    if not modelo_encontrado:
+        print("❌ No se encontró el modelo. Rutas probadas:")
+        for ruta in posibles_rutas:
+            print(f"  - {ruta} ({'Existe' if os.path.exists(ruta) else 'No existe'})")
+        raise FileNotFoundError(f"No se encontró el archivo del modelo. Verifique que el archivo {nombre_modelo} exista.")
     
     # Convertir ruta del modelo a formato R
     nombre_modelo_r = nombre_modelo.replace("\\", "/")
@@ -88,24 +104,31 @@ def ejecutar_modelo_ais(
     
     # Crear script R temporal
     r_script_content = f"""
-    # Cargar paquetes necesarios
-    tryCatch({{
-        library(Matrix)
-        library(xgboost)
-        library(dplyr)
-        library(fastDummies)
-    }}, error = function(e) {{
-        # Si hay error al cargar los paquetes, instalamos
-        cat("Error al cargar paquetes, intentando instalar:", e$message, "\\n")
-        install.packages(c("Matrix", "xgboost", "dplyr", "fastDummies"), repos = "https://cloud.r-project.org")
-        library(Matrix)
-        library(xgboost)
-        library(dplyr)
-        library(fastDummies)
-    }})
+    # Configurar opciones de R para evitar problemas comunes
+    options(warn = 1)  # Mostrar advertencias cuando ocurran
     
-    # Debugging - Mostrar directorio de trabajo actual
+    # Cargar paquetes necesarios
+    packages_needed <- c("Matrix", "xgboost", "dplyr", "fastDummies")
+    packages_to_install <- packages_needed[!packages_needed %in% installed.packages()[,"Package"]]
+    
+    if(length(packages_to_install) > 0) {{
+        cat("Instalando paquetes necesarios:", paste(packages_to_install, collapse=", "), "\\n")
+        install.packages(packages_to_install, repos = "https://cloud.r-project.org", quiet = TRUE)
+    }}
+    
+    # Intentar cargar los paquetes
+    for(pkg in packages_needed) {{
+        cat("Cargando paquete:", pkg, "\\n")
+        if(!require(pkg, character.only = TRUE)) {{
+            cat("❌ Error al cargar el paquete:", pkg, "\\n")
+            stop(paste("No se pudo cargar el paquete", pkg))
+        }}
+    }}
+    
+    # Debugging - Mostrar directorio de trabajo actual y modelo a cargar
     cat("Directorio de trabajo:", getwd(), "\\n")
+    cat("Ruta del modelo a cargar:", "{nombre_modelo_r}", "\\n")
+    cat("¿El archivo existe?:", file.exists("{nombre_modelo_r}"), "\\n")
     
     # Leer los datos
     tryCatch({{
@@ -254,12 +277,15 @@ def ejecutar_modelo_ais(
         # Verificar que R está instalado
         try:
             # Intentar ejecutar R con una versión muy simple para verificar disponibilidad
-            r_check = subprocess.run(['R', '--version'], 
+            r_check = subprocess.run(['Rscript', '-e', 'cat("R está funcionando correctamente\n")'], 
                                     capture_output=True,
                                     text=True,
                                     timeout=10)
-            print("R está instalado en el sistema:")
-            print(r_check.stdout.splitlines()[0] if r_check.stdout else "")
+            if r_check.returncode == 0:
+                print("✅ R está instalado y funcionando correctamente")
+            else:
+                print("⚠️ R podría estar instalado pero con problemas:")
+                print(r_check.stderr)
         except (subprocess.CalledProcessError, FileNotFoundError):
             print("R no está instalado o no es accesible en el PATH")
             if os.name == 'posix':  # Linux/Mac
@@ -296,49 +322,31 @@ def ejecutar_modelo_ais(
             print("Advertencia: Posible problema al instalar paquetes R:")
             print(pkg_install.stderr)
 
-        # Ejecutar el script R principal
+        # Ejecutar el script R principal con una mejor gestión de errores
         print(f"Ejecutando script R: {r_script_path}")
         
-        # Usar subprocess.Popen para capturar la salida en tiempo real
-        process = subprocess.Popen(['Rscript', '--vanilla', r_script_path], 
-                                  stdout=subprocess.PIPE,
-                                  stderr=subprocess.PIPE,
-                                  text=True,
-                                  bufsize=1)
-        
-        # Capturar la salida en tiempo real
-        stdout_lines = []
-        stderr_lines = []
-        
-        print("SALIDA DE R:")
-        for line in process.stdout:
-            print(line.strip())
-            stdout_lines.append(line)
+        try:
+            # Primera opción: usar subprocess.run para mayor simplicidad
+            result = subprocess.run(['Rscript', '--vanilla', r_script_path], 
+                                   capture_output=True, 
+                                   text=True,
+                                   timeout=600)  # 10 minutos máximo
             
-        # Esperar a que termine el proceso y obtener el código de retorno
-        return_code = process.wait()
-        
-        # Capturar cualquier error pendiente
-        for line in process.stderr:
-            stderr_lines.append(line)
-        
-        # Combinar las líneas en un solo string
-        stdout_output = ''.join(stdout_lines)
-        stderr_output = ''.join(stderr_lines)
-        
-        if stderr_output:
-            print("STDERR DE R:")
-            print(stderr_output)
-
-        # Verificar si el proceso terminó con éxito
-        if return_code != 0:
-            error_msg = f"R script failed with return code {return_code}"
-            print(f"❌ {error_msg}")
-            if stderr_output:
-                error_msg += f"\nSTDERR: {stderr_output}"
-            if stdout_output:
-                error_msg += f"\nSTDOUT: {stdout_output}"
-            raise RuntimeError(error_msg)
+            # Mostrar la salida de R
+            if result.stdout:
+                print("SALIDA DE R:")
+                print(result.stdout)
+            
+            if result.stderr:
+                print("STDERR DE R:")
+                print(result.stderr)
+            
+            # Verificar código de retorno
+            result.check_returncode()
+            
+        except subprocess.TimeoutExpired:
+            print("❌ Error: El script R tardó demasiado tiempo en ejecutarse y se canceló.")
+            raise RuntimeError("Timeout al ejecutar el script R")
         
         # Leer el resultado final
         if os.path.exists(resultado_final_path):
