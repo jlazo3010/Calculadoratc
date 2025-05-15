@@ -30,6 +30,7 @@ import math
 import pickle 
 import json
 
+st.set_page_config(page_title="App de Clientes", layout="centered")
 # ---------------- CONFIGURACIÓN ----------------
 
 AWS_ACCESS_KEY = os.environ['AWS_ACCESS_KEY_ID']
@@ -504,8 +505,6 @@ if 'limpiar_formulario' in st.session_state and st.session_state['limpiar_formul
     st.session_state["FOTO"] = False
 
 # ---------------- INTERFAZ ----------------
-
-st.set_page_config(page_title="App de Clientes", layout="centered")
 
 st.markdown("""
     <style>
