@@ -110,6 +110,11 @@ def ejecutar_modelo_ais(
     cat("Ruta del modelo a cargar:", "{nombre_modelo_r}", "\\n")
     cat("¿El archivo existe?:", file.exists("{nombre_modelo_r}"), "\\n")
     
+    # CAMBIO 2: Si el archivo no existe, parar con error claro
+    if (!file.exists("{nombre_modelo_r}")) {{
+        stop(paste0("El archivo del modelo no existe en la ruta: ", "{nombre_modelo_r}"))
+    }}
+    
     # Leer los datos
     tryCatch({{
         df_python <- read.csv("{input_csv_path_r}")
@@ -310,27 +315,48 @@ def ejecutar_modelo_ais(
         # Ejecutar el script R principal con una mejor gestión de errores
         print(f"Ejecutando script R: {r_script_path}")
         
+        # CAMBIO 3: Mejorar el manejo de errores de R
         try:
-            # Primera opción: usar subprocess.run para mayor simplicidad
-            result = subprocess.run(['Rscript', '--vanilla', r_script_path], 
-                                   capture_output=True, 
-                                   text=True,
-                                   timeout=600)  # 10 minutos máximo
+            # Ejecutar R con impresión directa de la salida para un mejor diagnóstico
+            print("Iniciando ejecución de R...")
+            process = subprocess.Popen(['Rscript', '--vanilla', r_script_path], 
+                                    stdout=subprocess.PIPE, 
+                                    stderr=subprocess.PIPE,
+                                    text=True,
+                                    bufsize=1)
             
-            # Mostrar la salida de R
-            if result.stdout:
-                print("SALIDA DE R:")
-                print(result.stdout)
+            # Imprimir salida de R en tiempo real
+            stdout_lines = []
+            stderr_lines = []
             
-            if result.stderr:
-                print("STDERR DE R:")
-                print(result.stderr)
+            # Leer y mostrar la salida estándar en tiempo real
+            for line in process.stdout:
+                line = line.rstrip()
+                print(f"R: {line}")
+                stdout_lines.append(line)
             
-            # Verificar código de retorno
-            result.check_returncode()
+            # Capturar la salida de error
+            for line in process.stderr:
+                line = line.rstrip()
+                print(f"R ERROR: {line}")
+                stderr_lines.append(line)
+                
+            # Esperar a que el proceso termine y obtener el código de salida
+            exit_code = process.wait()
+            
+            # Verificar si hubo errores
+            if exit_code != 0:
+                stderr_output = "\n".join(stderr_lines)
+                stdout_output = "\n".join(stdout_lines)
+                print(f"❌ Error al ejecutar el script R. Código de salida: {exit_code}")
+                print(f"STDOUT: {stdout_output}")
+                print(f"STDERR: {stderr_output}")
+                raise RuntimeError(f"El script R falló con código de salida {exit_code}")
             
         except subprocess.TimeoutExpired:
             print("❌ Error: El script R tardó demasiado tiempo en ejecutarse y se canceló.")
+            if process:
+                process.kill()
             raise RuntimeError("Timeout al ejecutar el script R")
         
         # Leer el resultado final
