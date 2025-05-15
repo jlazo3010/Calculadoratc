@@ -23,7 +23,7 @@ def predecir_ais_api(
         df_clean = df.replace([np.inf, -np.inf], np.nan)
         
         # Asegurar que los NaN se transformen correctamente a None para JSON
-        df_clean = df_clean.where(pd.notnull(df_clean), None)
+        df_clean = df_clean.where(pd.notnull(df_clean), 0)
         
         # Convertir a JSON-compatible
         json_data = df_clean.to_dict(orient="records")
