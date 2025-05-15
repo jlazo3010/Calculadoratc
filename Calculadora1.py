@@ -808,8 +808,7 @@ else:
                     with st.spinner("Ejecutando modelo AIS en R..."):
                         try:
                             resultado = ejecutar_modelo_ais(
-                                nombre_muestra=resultadosAIS,
-                                nombre_modelo='AISMaster_Modelo_20241223131859.Rdata'
+                                nombre_muestra=resultadosAIS
                             )
                             st.success("✅ Modelo AIS ejecutado correctamente.")
                             st.dataframe(resultado.iloc[:, 2])  # Asegúrate que tiene al menos 3 columnas

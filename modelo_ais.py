@@ -10,8 +10,7 @@ import re
 warnings.filterwarnings('ignore')
 
 def ejecutar_modelo_ais(
-    nombre_muestra=None,
-    nombre_modelo=None  # Nuevo parámetro opcional
+    nombre_muestra=None
 ):
     """
     Ejecuta un modelo XGBoost guardado en formato .Rdata desde Python usando subprocess.
@@ -19,8 +18,6 @@ def ejecutar_modelo_ais(
     
     Args:
         nombre_muestra (DataFrame): DataFrame (resultadosAIS) con los datos para predecir
-        nombre_modelo (str, optional): Ruta al archivo del modelo Rdata. Si no se proporciona, 
-                                       se usará el modelo por defecto "AISMaster_Modelo_20241223131859.Rdata".
         
     Returns:
         DataFrame: DataFrame con las columnas bimboId, blmId y predicciones (preds)
@@ -64,22 +61,16 @@ def ejecutar_modelo_ais(
     script_dir = os.path.dirname(os.path.abspath(__file__))
     print(f"Directorio del script: {script_dir}")
     
-    # Definir la ruta del modelo
-    if nombre_modelo is None:
-        nombre_modelo = os.path.join(script_dir, "AISMaster_Modelo_20241223131859.Rdata")
-    
+    # Definir la ruta del modelo directamente en la misma carpeta del script
+    nombre_modelo = os.path.join(script_dir, "AISMaster_Modelo_20241223131859.Rdata")
     print(f"Buscando el modelo en: {nombre_modelo}")
     
     # Verificar que el archivo existe
     if not os.path.isfile(nombre_modelo):
         # Intentar con directorio actual como respaldo
         current_dir = os.getcwd()
-        print(f"El modelo no se encontró en la ruta especificada. Probando en directorio actual: {current_dir}")
-        
-        if nombre_modelo is None:
-            nombre_modelo_alt = os.path.join(current_dir, "AISMaster_Modelo_20241223131859.Rdata")
-            if os.path.isfile(nombre_modelo_alt):
-                nombre_modelo = nombre_modelo_alt
+        print(f"El modelo no se encontró en la carpeta del script. Probando en directorio actual: {current_dir}")
+        nombre_modelo = os.path.join(current_dir, "AISMaster_Modelo_20241223131859.Rdata")
         
         if not os.path.isfile(nombre_modelo):
             # Mostrar el contenido del directorio para diagnóstico
@@ -89,7 +80,7 @@ def ejecutar_modelo_ais(
             print("Archivos en el directorio actual:")
             for file in os.listdir(current_dir):
                 print(f"  - {file}")
-            raise FileNotFoundError(f"No se encontró el archivo del modelo en la ruta especificada ni en el directorio actual.")
+            raise FileNotFoundError("No se encontró el archivo AISMaster_Modelo_20241223131859.Rdata en la carpeta del script ni en el directorio actual.")
     
     # Convertir ruta del modelo a formato R
     nombre_modelo_r = nombre_modelo.replace("\\", "/")
