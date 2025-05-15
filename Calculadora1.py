@@ -11,7 +11,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.base import BaseEstimator, TransformerMixin
-from ais_client import predecir_ais_api
+from modelo_ais import ejecutar_modelo_ais
 import numpy as np
 import subprocess
 import statsmodels.api as sm
@@ -803,10 +803,9 @@ else:
                     
                     with st.spinner("Ejecutando modelo AIS en R..."):
                         try:
-                            resultado = predecir_ais_api(
-                                df=resultadosAIS,
-                                modelo='AISMaster_Modelo_20241223131859.Rdata',  # Asegúrate que el nombre sea correcto
-                                api_url="https://f2b7-200-94-61-42.ngrok-free.app/predict"
+                            resultado = ejecutar_modelo_ais(
+                                nombre_muestra=resultadosAIS,
+                                nombre_modelo='AISMaster_Modelo_20241223131859.Rdata'
                             )
                             st.success("✅ Modelo AIS ejecutado correctamente.")
                             st.dataframe(resultado.iloc[:, 2])  # Asegúrate que tiene al menos 3 columnas
