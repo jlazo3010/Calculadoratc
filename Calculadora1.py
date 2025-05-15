@@ -825,7 +825,7 @@ else:
                             st.stop()
                     print("Se corrio bien modelo AIS")
 
-                    
+                    st.success("✅ Modelo AIS ejecutado correctamente.")
 
                     a = float(resultado.iloc[0, 2])
 
