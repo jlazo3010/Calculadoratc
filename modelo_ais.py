@@ -62,28 +62,9 @@ def ejecutar_modelo_ais(
     print(f"Directorio del script: {script_dir}")
     
     # Definir la ruta del modelo directamente en la misma carpeta del script
-    nombre_modelo = os.path.join(script_dir, "AISMaster_Modelo_20241223131859.Rdata")
-    print(f"Buscando el modelo en: {nombre_modelo}")
-    
-    # Verificar que el archivo existe
-    if not os.path.isfile(nombre_modelo):
-        # Intentar con directorio actual como respaldo
-        current_dir = os.getcwd()
-        print(f"El modelo no se encontró en la carpeta del script. Probando en directorio actual: {current_dir}")
-        nombre_modelo = os.path.join(current_dir, "AISMaster_Modelo_20241223131859.Rdata")
-        
-        if not os.path.isfile(nombre_modelo):
-            # Mostrar el contenido del directorio para diagnóstico
-            print("Archivos en el directorio del script:")
-            for file in os.listdir(script_dir):
-                print(f"  - {file}")
-            print("Archivos en el directorio actual:")
-            for file in os.listdir(current_dir):
-                print(f"  - {file}")
-            raise FileNotFoundError("No se encontró el archivo AISMaster_Modelo_20241223131859.Rdata en la carpeta del script ni en el directorio actual.")
-    
+    nombre_modelo = "AISMaster_Modelo_20241223131859.Rdata"
     # Convertir ruta del modelo a formato R
-    nombre_modelo_r = nombre_modelo.replace("\\", "/")
+    nombre_modelo_r = nombre_modelo
     
     # Crear un archivo temporal para guardar los datos
     with tempfile.NamedTemporaryFile(suffix='.csv', delete=False, mode='w+') as temp_input_file:
