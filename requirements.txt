@@ -1,4 +1,5 @@
 requests
+rpy2==3.5.1
 streamlit==1.37.1
 pandas==2.2.2
 boto3==1.38.3
