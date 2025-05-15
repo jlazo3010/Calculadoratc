@@ -18,32 +18,35 @@ def predecir_ais_api(
         DataFrame: DataFrame con las predicciones
     """
     try:
-        # Convertir DataFrame a formato JSON
-        json_data = df.replace([np.inf, -np.inf], np.nan).fillna(None).to_dict(orient="records")
+        # Limpiar valores no válidos
+        df_clean = df.replace([np.inf, -np.inf], np.nan)
         
-        # Preparar datos para la solicitud
+        # Asegurar que los NaN se transformen correctamente a None para JSON
+        df_clean = df_clean.where(pd.notnull(df_clean), None)
+        
+        # Convertir a JSON-compatible
+        json_data = df_clean.to_dict(orient="records")
+        
+        # Preparar payload para la API
         payload = {
             "modelo": modelo,
             "data": json_data
         }
         
-        # Realizar la solicitud a la API
+        # Enviar solicitud
         response = requests.post(api_url, json=payload)
         
-        # Verificar si la solicitud fue exitosa
+        # Procesar respuesta
         if response.status_code == 200:
             result = response.json()
             
-            # Verificar el estado de la respuesta
             if result['status'] == 'success':
-                # Convertir las predicciones JSON a DataFrame
-                predictions_json = result['predictions']
-                predictions_df = pd.DataFrame(predictions_json)
+                predictions_df = pd.DataFrame(result['predictions'])
                 return predictions_df
             else:
                 raise Exception(f"Error en la API: {result['message']}")
         else:
-            raise Exception(f"Error en la solicitud: {response.status_code} - {response.text}")
+            raise Exception(f"Error HTTP: {response.status_code} - {response.text}")
     
     except Exception as e:
         print(f"Error al llamar a la API: {str(e)}")
