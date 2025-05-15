@@ -799,11 +799,10 @@ else:
 
                     # Aplica el modelo a tu DataFrame resultadosAIS
 
-                    json_resultado = resultadosAIS.to_json(orient='records')[1:-1]
                     with st.spinner("Ejecutando modelo AIS en R..."):
                         try:
                             resultado = predecir_ais_api(
-                                df = json_resultado,
+                                df = resultadosAIS,
                                 modelo='AISMaster_Modelo_20241223131859.R',
                                 api_url="https://3332-200-94-61-42.ngrok-free.app/predict"
                             )
