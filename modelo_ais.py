@@ -10,7 +10,6 @@ import re
 warnings.filterwarnings('ignore')
 
 def ejecutar_modelo_ais(
-    nombre_modelo="AISMaster_Modelo_20241223131859.Rdata",
     nombre_muestra=None
 ):
     """
@@ -18,7 +17,6 @@ def ejecutar_modelo_ais(
     Para usar en una app de Streamlit existente.
     
     Args:
-        nombre_modelo (str): Nombre o ruta al archivo del modelo en formato .Rdata
         nombre_muestra (DataFrame): DataFrame (resultadosAIS) con los datos para predecir
         
     Returns:
@@ -59,29 +57,30 @@ def ejecutar_modelo_ais(
     # Definir directorios
     output_dir = path_r
     
-    # Verificar si el archivo del modelo existe, probando múltiples ubicaciones
-    posibles_rutas = [
-        nombre_modelo,  # Usar la ruta proporcionada directamente
-        os.path.join(path, nombre_modelo),  # Ruta relativa al directorio actual
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), nombre_modelo),  # Ruta relativa al directorio del script
-        os.path.abspath(nombre_modelo),  # Ruta absoluta
-        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), nombre_modelo)  # Directorio padre
-    ]
+    # Obtener el directorio actual donde se ejecuta el script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    print(f"Directorio del script: {script_dir}")
     
-    # Buscar el archivo en todas las posibles rutas
-    modelo_encontrado = False
-    for ruta in posibles_rutas:
-        if os.path.exists(ruta):
-            nombre_modelo = ruta
-            modelo_encontrado = True
-            print(f"✅ Modelo encontrado en: {nombre_modelo}")
-            break
+    # Definir la ruta del modelo directamente en la misma carpeta del script
+    nombre_modelo = os.path.join(script_dir, "AISMaster_Modelo_20241223131859.Rdata")
+    print(f"Buscando el modelo en: {nombre_modelo}")
     
-    if not modelo_encontrado:
-        print("❌ No se encontró el modelo. Rutas probadas:")
-        for ruta in posibles_rutas:
-            print(f"  - {ruta} ({'Existe' if os.path.exists(ruta) else 'No existe'})")
-        raise FileNotFoundError(f"No se encontró el archivo del modelo. Verifique que el archivo {nombre_modelo} exista.")
+    # Verificar que el archivo existe
+    if not os.path.isfile(nombre_modelo):
+        # Intentar con directorio actual como respaldo
+        current_dir = os.getcwd()
+        print(f"El modelo no se encontró en la carpeta del script. Probando en directorio actual: {current_dir}")
+        nombre_modelo = os.path.join(current_dir, "AISMaster_Modelo_20241223131859.Rdata")
+        
+        if not os.path.isfile(nombre_modelo):
+            # Mostrar el contenido del directorio para diagnóstico
+            print("Archivos en el directorio del script:")
+            for file in os.listdir(script_dir):
+                print(f"  - {file}")
+            print("Archivos en el directorio actual:")
+            for file in os.listdir(current_dir):
+                print(f"  - {file}")
+            raise FileNotFoundError("No se encontró el archivo AISMaster_Modelo_20241223131859.Rdata en la carpeta del script ni en el directorio actual.")
     
     # Convertir ruta del modelo a formato R
     nombre_modelo_r = nombre_modelo.replace("\\", "/")
