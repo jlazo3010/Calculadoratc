@@ -799,6 +799,9 @@ else:
 
                     # Aplica el modelo a tu DataFrame resultadosAIS
 
+                    resultadosAIS = resultadosAIS.replace([np.inf, -np.inf], np.nan)  # Reemplaza inf por NaN
+                    resultadosAIS = resultadosAIS.fillna(None)  # Convierte NaN a None (aceptado por JSON)
+                    
                     with st.spinner("Ejecutando modelo AIS en R..."):
                         try:
                             resultado = predecir_ais_api(
