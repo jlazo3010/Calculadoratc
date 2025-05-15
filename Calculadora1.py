@@ -477,7 +477,7 @@ if 'limpiar_formulario' in st.session_state and st.session_state['limpiar_formul
     st.session_state['Oferta'] = 0
     st.session_state['nombre'] = ""
     st.session_state['edad'] = 18
-    st.session_state['LLAMADA'] = ""
+    st.session_state['LLAMADA'] = "No"
     st.session_state['CP'] = ""
     st.session_state['genero'] = "Masculino"
     st.session_state['Dependientes'] = "0"
@@ -901,6 +901,24 @@ else:
     except Exception as e:
         st.error(f"❌ Error al cargar la base: {e}")
 
+    # Campo de entrada para el ID del cliente a eliminar
+    st.markdown("---")
+    id_cliente_eliminar = st.text_input("Introduce el ID del cliente a eliminar:")
+
+    if st.button("❌ Eliminar Cliente"):
+        if id_cliente_eliminar:
+            try:
+                df = cargar_base()
+                if id_cliente_eliminar in df['Solicitud'].values:
+                    eliminar_registro(id_cliente_eliminar)
+                    st.success(f"✅ La solicitud {id_cliente_eliminar} ha sido eliminado.")
+                    st.rerun()  
+                else:
+                    st.error(f"No se encontró la solicitud {id_cliente_eliminar}.")
+            except Exception as e:
+                st.error(f"❌ Error al eliminar la solicitud: {e}")
+        else:
+            st.warning("Por favor, ingresa una solicitud para eliminar.")
     # Botón de cierre de sesión
     if st.sidebar.button("Cerrar Sesión"):
         st.session_state['autenticado'] = False
