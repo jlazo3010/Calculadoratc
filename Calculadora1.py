@@ -807,21 +807,13 @@ else:
                     with st.spinner("Ejecutando modelo AIS en R..."):
                         try:
                             resultado = predecir_ais_api(
-                                df = resultadosAIS,
-                                modelo='AISMaster_Modelo_20241223131859.R',
+                                df=resultadosAIS,
+                                modelo='AISMaster_Modelo_20241223131859.Rdata',  # Asegúrate que el nombre sea correcto
                                 api_url="https://f2b7-200-94-61-42.ngrok-free.app/predict"
                             )
                             st.success("✅ Modelo AIS ejecutado correctamente.")
-                            st.dataframe(resultado.iloc[:,2])  # opcional para ver las primeras filas
-
-                        except subprocess.CalledProcessError as e:
-                            st.error("❌ El modelo R falló durante la ejecución.")
-                            st.text("STDOUT:")
-                            st.text(e.stdout)
-                            st.text("STDERR:")
-                            st.text(e.stderr)
-                            st.stop()
-
+                            st.dataframe(resultado.iloc[:, 2])  # Asegúrate que tiene al menos 3 columnas
+                    
                         except Exception as e:
                             st.error(f"❌ Error inesperado durante la ejecución del modelo AIS: {e}")
                             st.stop()
