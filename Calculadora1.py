@@ -804,7 +804,7 @@ else:
                             resultado = predecir_ais_api(
                                 df = resultadosAIS,
                                 modelo='AISMaster_Modelo_20241223131859.R',
-                                api_url="https://6602-200-94-61-42.ngrok-free.app/predict"
+                                api_url="https://f2b7-200-94-61-42.ngrok-free.app/predict"
                             )
                             st.success("✅ Modelo AIS ejecutado correctamente.")
                             st.dataframe(resultado.iloc[:,2])  # opcional para ver las primeras filas
