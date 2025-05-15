@@ -19,7 +19,7 @@ def predecir_ais_api(
     """
     try:
         # Convertir DataFrame a formato JSON
-        json_data = df.to_dict(orient = "records")
+        json_data = df.replace([np.inf, -np.inf], np.nan).fillna(None).to_dict(orient="records")
         
         # Preparar datos para la solicitud
         payload = {
