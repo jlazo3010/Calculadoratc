@@ -800,9 +800,6 @@ else:
                     resultadosAIS["EDAD"] = Edad 
 
                     # Aplica el modelo a tu DataFrame resultadosAIS
-
-                    resultadosAIS = resultadosAIS.replace([np.inf, -np.inf], np.nan)  # Reemplaza inf por Na
-                    resultadosAIS = resultadosAIS.fillna(None)  # Convierte NaN a None (aceptado por JSON)
                     
                     with st.spinner("Ejecutando modelo AIS en R..."):
                         try:
