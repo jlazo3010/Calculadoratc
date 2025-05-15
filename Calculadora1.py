@@ -250,11 +250,16 @@ categorical_transformer_label = Pipeline(steps=[
 # Función para cargar el modelo
 def cargar_modelo(ruta_modelo='modelo_regresion_logistica_v2.pkl'):
     """
-    Carga el modelo de regresión logística guardado previamente
+    Carga el modelo de regresión logística guardado previamente con manejo de errores
     """
-    with open(ruta_modelo, 'rb') as file:
-        modelo_cargado = pickle.load(file)
-    return modelo_cargado
+    try:
+        with open(ruta_modelo, 'rb') as file:
+            modelo_cargado = pickle.load(file)
+        return modelo_cargado
+    except AttributeError:
+        st.error("Error al cargar el modelo: La clase MultiColumnLabelEncoder no fue encontrada. Verifica que esté definida correctamente.")
+        # Define una respuesta predeterminada o alternativa
+        return None
  
 # Función para preprocesar nuevos datos
 def preprocesar_nuevos_datos(datos_nuevos, modelo_cargado):
