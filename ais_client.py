@@ -1,5 +1,6 @@
 import pandas as pd
 import requests
+import numpy as np
 
 def predecir_ais_api(
     df, 
