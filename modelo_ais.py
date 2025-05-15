@@ -64,6 +64,9 @@ def ejecutar_modelo_ais(
         # Si es una ruta relativa, hacerla absoluta
         nombre_modelo = os.path.join(path, nombre_modelo)
     
+    if not os.path.exists(nombre_modelo):
+        raise FileNotFoundError(f"No se encontró el archivo del modelo en: {nombre_modelo}")
+    
     # Convertir ruta del modelo a formato R
     nombre_modelo_r = nombre_modelo.replace("\\", "/")
     
@@ -248,19 +251,30 @@ def ejecutar_modelo_ais(
         temp_r_script.write(r_script_content)
     
     try:
-        # Para Streamlit Cloud - Instalar R si no está disponible
+        # Verificar que R está instalado
         try:
-            # Verificar si R está instalado
-            subprocess.run(['which', 'R'], check=True, capture_output=True)
-            print("R está instalado en el sistema")
-        except subprocess.CalledProcessError:
-            print("R no está instalado, intentando instalarlo...")
-            # Instalar R en Streamlit Cloud
-            subprocess.run(['apt-get', 'update'], check=True)
-            subprocess.run(['apt-get', 'install', '-y', 'r-base'], check=True)
-            print("R instalado correctamente")
+            # Intentar ejecutar R con una versión muy simple para verificar disponibilidad
+            r_check = subprocess.run(['R', '--version'], 
+                                    capture_output=True,
+                                    text=True,
+                                    timeout=10)
+            print("R está instalado en el sistema:")
+            print(r_check.stdout.splitlines()[0] if r_check.stdout else "")
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            print("R no está instalado o no es accesible en el PATH")
+            if os.name == 'posix':  # Linux/Mac
+                try:
+                    print("Intentando instalar R en sistema Linux...")
+                    subprocess.run(['apt-get', 'update'], check=True)
+                    subprocess.run(['apt-get', 'install', '-y', 'r-base'], check=True)
+                    print("R instalado correctamente")
+                except Exception as e:
+                    print(f"Error al instalar R: {e}")
+                    raise RuntimeError("No se pudo instalar R. Verifique que tiene los permisos necesarios.")
+            else:
+                raise RuntimeError("R no está instalado en el sistema. Por favor, instale R manualmente.")
         
-        # Instalar paquetes R necesarios de forma global
+        # Instalar paquetes R necesarios
         r_packages_script = """
         if (!require("Matrix")) install.packages("Matrix", repos = "https://cloud.r-project.org")
         if (!require("xgboost")) install.packages("xgboost", repos = "https://cloud.r-project.org")
@@ -275,26 +289,57 @@ def ejecutar_modelo_ais(
         print("Instalando paquetes R necesarios...")
         pkg_install = subprocess.run(['Rscript', pkg_script_path], 
                                     capture_output=True, 
-                                    text=True)
-        print(pkg_install.stdout)
+                                    text=True,
+                                    timeout=300)  # 5 minutos para instalar paquetes
         
-        # Ejecutar el script R sin shell=True para mayor seguridad en Streamlit Cloud
+        if pkg_install.returncode != 0:
+            print("Advertencia: Posible problema al instalar paquetes R:")
+            print(pkg_install.stderr)
+
+        # Ejecutar el script R principal
         print(f"Ejecutando script R: {r_script_path}")
-        result = subprocess.run(['Rscript', '--vanilla', r_script_path], 
-                               capture_output=True, 
-                               text=True)
-
-        # Mostrar la salida de R
+        
+        # Usar subprocess.Popen para capturar la salida en tiempo real
+        process = subprocess.Popen(['Rscript', '--vanilla', r_script_path], 
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.PIPE,
+                                  text=True,
+                                  bufsize=1)
+        
+        # Capturar la salida en tiempo real
+        stdout_lines = []
+        stderr_lines = []
+        
         print("SALIDA DE R:")
-        print(result.stdout)
-
-        if result.stderr:
+        for line in process.stdout:
+            print(line.strip())
+            stdout_lines.append(line)
+            
+        # Esperar a que termine el proceso y obtener el código de retorno
+        return_code = process.wait()
+        
+        # Capturar cualquier error pendiente
+        for line in process.stderr:
+            stderr_lines.append(line)
+        
+        # Combinar las líneas en un solo string
+        stdout_output = ''.join(stdout_lines)
+        stderr_output = ''.join(stderr_lines)
+        
+        if stderr_output:
             print("STDERR DE R:")
-            print(result.stderr)
+            print(stderr_output)
 
-        # Verificar si el proceso de R terminó con éxito
-        result.check_returncode()
-
+        # Verificar si el proceso terminó con éxito
+        if return_code != 0:
+            error_msg = f"R script failed with return code {return_code}"
+            print(f"❌ {error_msg}")
+            if stderr_output:
+                error_msg += f"\nSTDERR: {stderr_output}"
+            if stdout_output:
+                error_msg += f"\nSTDOUT: {stdout_output}"
+            raise RuntimeError(error_msg)
+        
         # Leer el resultado final
         if os.path.exists(resultado_final_path):
             resultado_final = pd.read_csv(resultado_final_path)
@@ -304,20 +349,19 @@ def ejecutar_modelo_ais(
         else:
             raise FileNotFoundError(f"El archivo de resultados no se ha creado en: {resultado_final_path}")
 
-    except subprocess.CalledProcessError as e:
-        error_msg = f"❌ Error al ejecutar el script R.\nSTDOUT: {e.stdout}\nSTDERR: {e.stderr}"
-        print(error_msg)
-        raise RuntimeError(f"El script R falló durante la ejecución: {error_msg}")
-
+    except subprocess.TimeoutExpired:
+        print("❌ Error: El script R tardó demasiado tiempo en ejecutarse y se canceló.")
+        raise RuntimeError("Timeout al ejecutar el script R")
+    
     except Exception as e:
-        print(f"⚠️ Excepción inesperada: {e}")
+        print(f"⚠️ Excepción durante la ejecución: {type(e).__name__}: {e}")
         raise
 
     finally:
         # Limpieza de archivos temporales
-        for file_path in [input_csv_path, r_script_path]:
-            if os.path.exists(file_path):
+        for file_path in [input_csv_path, r_script_path, pkg_script_path]:
+            if file_path and os.path.exists(file_path):
                 try:
                     os.unlink(file_path)
-                except Exception:
-                    pass
+                except Exception as e:
+                    print(f"No se pudo eliminar el archivo temporal {file_path}: {e}")
