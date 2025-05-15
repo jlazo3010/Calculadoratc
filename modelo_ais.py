@@ -62,9 +62,11 @@ def ejecutar_modelo_ais(
     print(f"Directorio del script: {script_dir}")
     
     # Definir la ruta del modelo directamente en la misma carpeta del script
-    nombre_modelo = "AISMaster_Modelo_20241223131859.Rdata"
+    # CAMBIO 1: Usar la ruta completa del modelo
+    nombre_modelo = os.path.join(script_dir, "AISMaster_Modelo_20241223131859.Rdata")
     # Convertir ruta del modelo a formato R
-    nombre_modelo_r = nombre_modelo
+    nombre_modelo_r = nombre_modelo.replace("\\", "/")
+    print(f"Ruta completa del modelo: {nombre_modelo_r}")
     
     # Crear un archivo temporal para guardar los datos
     with tempfile.NamedTemporaryFile(suffix='.csv', delete=False, mode='w+') as temp_input_file:
