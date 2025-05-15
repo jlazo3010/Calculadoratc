@@ -62,17 +62,25 @@ def ejecutar_modelo_ais(
     print(f"Directorio del script: {script_dir}")
     
     # Definir la ruta del modelo directamente en la misma carpeta del script
-    # CAMBIO 1: Usar la ruta completa del modelo
-    nombre_modelo = os.path.join(script_dir, "AISMaster_Modelo_20241223131859.Rdata")
+    nombre_modelo = os.path.join(script_dir, "AISMaster_Modelo_20241223131859.RData")
     # Convertir ruta del modelo a formato R
     nombre_modelo_r = nombre_modelo.replace("\\", "/")
     print(f"Ruta completa del modelo: {nombre_modelo_r}")
     
+    # Verificación adicional para asegurar que el modelo existe
+    if not os.path.exists(nombre_modelo):
+        raise FileNotFoundError(f"El archivo del modelo no existe en la ruta: {nombre_modelo}")
+    
     # Crear un archivo temporal para guardar los datos
+    input_csv_path = None  # Inicializar variable
     with tempfile.NamedTemporaryFile(suffix='.csv', delete=False, mode='w+') as temp_input_file:
         input_csv_path = temp_input_file.name
         df.to_csv(input_csv_path, index=False)
     
+    # Verificar que el archivo temporal se creó correctamente
+    if not input_csv_path or not os.path.exists(input_csv_path):
+        raise FileNotFoundError("No se pudo crear el archivo temporal para los datos")
+        
     # Convertir ruta del archivo CSV a formato R
     input_csv_path_r = input_csv_path.replace("\\", "/")
     
@@ -112,7 +120,7 @@ def ejecutar_modelo_ais(
     cat("Ruta del modelo a cargar:", "{nombre_modelo_r}", "\\n")
     cat("¿El archivo existe?:", file.exists("{nombre_modelo_r}"), "\\n")
     
-    # CAMBIO 2: Si el archivo no existe, parar con error claro
+    # Si el archivo no existe, parar con error claro
     if (!file.exists("{nombre_modelo_r}")) {{
         stop(paste0("El archivo del modelo no existe en la ruta: ", "{nombre_modelo_r}"))
     }}
@@ -256,13 +264,16 @@ def ejecutar_modelo_ais(
     """
     
     # Escribir el script R en un archivo temporal
+    r_script_path = None  # Inicializar variable
     with tempfile.NamedTemporaryFile(suffix='.R', delete=False, mode='w+') as temp_r_script:
         r_script_path = temp_r_script.name
         temp_r_script.write(r_script_content)
     
-    # Inicializar variables de archivos temporales para que estén disponibles en el bloque finally
-    input_csv_path = None
-    r_script_path = None
+    # Verificar que el archivo temporal se creó correctamente
+    if not r_script_path or not os.path.exists(r_script_path):
+        raise FileNotFoundError("No se pudo crear el archivo temporal para el script R")
+    
+    # Inicializar variable para archivo temporal de paquetes
     pkg_script_path = None
     
     try:
@@ -278,8 +289,8 @@ def ejecutar_modelo_ais(
             else:
                 print("⚠️ R podría estar instalado pero con problemas:")
                 print(r_check.stderr)
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            print("R no está instalado o no es accesible en el PATH")
+        except Exception as e:
+            print(f"Error al verificar R: {e}")
             if os.name == 'posix':  # Linux/Mac
                 try:
                     print("Intentando instalar R en sistema Linux...")
@@ -304,6 +315,10 @@ def ejecutar_modelo_ais(
             pkg_script_path = temp_pkg_script.name
             temp_pkg_script.write(r_packages_script)
         
+        # Verificar que el archivo temporal se creó correctamente
+        if not pkg_script_path or not os.path.exists(pkg_script_path):
+            raise FileNotFoundError("No se pudo crear el archivo temporal para el script de paquetes R")
+        
         print("Instalando paquetes R necesarios...")
         pkg_install = subprocess.run(['Rscript', pkg_script_path], 
                                     capture_output=True, 
@@ -317,7 +332,7 @@ def ejecutar_modelo_ais(
         # Ejecutar el script R principal con una mejor gestión de errores
         print(f"Ejecutando script R: {r_script_path}")
         
-        # CAMBIO 3: Mejorar el manejo de errores de R
+        # Mejorar el manejo de errores de R
         try:
             # Ejecutar R con impresión directa de la salida para un mejor diagnóstico
             print("Iniciando ejecución de R...")
@@ -332,13 +347,17 @@ def ejecutar_modelo_ais(
             stderr_lines = []
             
             # Leer y mostrar la salida estándar en tiempo real
-            for line in process.stdout:
+            for line in iter(process.stdout.readline, ''):
+                if not line:
+                    break
                 line = line.rstrip()
                 print(f"R: {line}")
                 stdout_lines.append(line)
             
             # Capturar la salida de error
-            for line in process.stderr:
+            for line in iter(process.stderr.readline, ''):
+                if not line:
+                    break
                 line = line.rstrip()
                 print(f"R ERROR: {line}")
                 stderr_lines.append(line)
@@ -357,7 +376,7 @@ def ejecutar_modelo_ais(
             
         except subprocess.TimeoutExpired:
             print("❌ Error: El script R tardó demasiado tiempo en ejecutarse y se canceló.")
-            if process:
+            if 'process' in locals() and process:
                 process.kill()
             raise RuntimeError("Timeout al ejecutar el script R")
         
@@ -379,7 +398,7 @@ def ejecutar_modelo_ais(
         raise
 
     finally:
-        # Limpieza de archivos temporales
+        # Limpieza de archivos temporales (asegurando que las variables estén definidas)
         for file_path in [input_csv_path, r_script_path, pkg_script_path]:
             if file_path and os.path.exists(file_path):
                 try:
