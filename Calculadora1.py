@@ -667,6 +667,7 @@ else:
                     resultadosAIS = tabla_AIS[tabla_AIS["bimboId"] == BimboID]
                     if not resultadosAIS.empty:
                         st.success("✅ Datos encontrados en AIS")
+                        resultadosAIS
                     else:
                         st.error("No se encontraron datos para ese BimboID.")
 
