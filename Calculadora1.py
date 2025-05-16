@@ -39,6 +39,7 @@ ARCHIVO_S3 = 'tconetcacalculadora.csv'
 BASEID = 'Base_martin.csv'
 CPID = 'CPID.csv'
 AIS = 'base_AIS.csv'
+ADV = 'ADVcalculadora.csv'
 USU = 'Usuarios.csv'
 
 # Verificar que las variables se cargaron correctamente
