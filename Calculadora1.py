@@ -1177,9 +1177,6 @@ else:
                         st.session_state['Desicion_guardada'] = str(Desiscion)
                         st.session_state['Oferta_guardada'] = int(Oferta)  # Conversión explícita a entero
                         st.session_state['Tasa_guardada'] = str(Tasa)      # Conversión explícita a string
-                        
-                        st.write(f"Debug - Oferta asignada: {int(Oferta)}")
-                        st.write(f"Debug - Tasa asignada: {str(Tasa)}")
                         # Agregar bandera para indicar que se debe limpiar el formulario
                         st.session_state['limpiar_formulario'] = True
                         
