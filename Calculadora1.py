@@ -477,7 +477,7 @@ if 'limpiar_formulario' in st.session_state and st.session_state['limpiar_formul
     st.session_state['Oferta'] = 0
     st.session_state['nombre'] = ""
     st.session_state['edad'] = 18
-    st.session_state['LLAMADA'] = "No"
+    st.session_state['llamada'] = "No"
     st.session_state['CP'] = ""
     st.session_state['genero'] = "Masculino"
     st.session_state['Dependientes'] = "0"
@@ -632,7 +632,7 @@ else:
 
             Comentarios = st.text_input("Comentario", max_chars=150, key = "comentarios",value="")
 
-            llamada = st.selectbox("¿Se realizo llamada?", ["Si", "No"],key = "LLAMADA")
+            llamada = st.selectbox("¿Se realizo llamada?", ["Si", "No"],key = "llamada")
 
         with col2:
             genero = st.selectbox("Género", ["Masculino", "Femenino", "Otro"],key = "genero")
