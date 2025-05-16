@@ -263,6 +263,12 @@ def asignar_desiscion(grupo, Microscore):
         return "Rechazado"
     else:
         return "Aceptado"
+    
+def asignar_desiscion_ADV(Decil):
+    if Decil == 1 :
+        return "Rechazado"
+    else:
+        return "Aceptado"
 
 ############################## FUNCIONES PARA MODELO RL ###############################
 # datos numéricos
