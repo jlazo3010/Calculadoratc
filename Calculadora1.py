@@ -545,7 +545,6 @@ if 'limpiar_formulario' in st.session_state and st.session_state['limpiar_formul
     st.session_state["INE"] = False
     st.session_state["Domicilio"] = False
     st.session_state["CURP"] = False
-    st.session_state["RFC"] = False
     st.session_state["SPEI"] = False
     st.session_state["FOTO"] = "No"
 
@@ -569,7 +568,6 @@ if 'limpiar_formulario' in st.session_state and st.session_state['limpiar_formul
     st.session_state["INE_ADV"] = False
     st.session_state["Domicilio_ADV"] = False
     st.session_state["CURP_ADV"] = False
-    st.session_state["RFC_ADV"] = False
     st.session_state["SPEI_ADV"] = False
     st.session_state["FOTO_ADV"] = "No"
 
@@ -799,7 +797,6 @@ else:
                 valido_ine = st.checkbox("Validación de INE" , key="INE")
                 valido_domicilio = st.checkbox("Validación de Domicilio", key="Domicilio")
                 valido_curp = st.checkbox("Validación de CURP", key="CURP")
-                valido_rfc = st.checkbox("Validación de RFC", key="RFC")
                 valido_spei = st.checkbox("Validación de SPEI", key="SPEI")
                 valido_foto = st.selectbox("Oferta corresponde al tamaño del negocio", ["Si", "No", "No se aprecía"],key = "FOTO")
 
@@ -810,7 +807,6 @@ else:
                     llamada and 
                     valido_domicilio and
                     valido_curp and
-                    valido_rfc and
                     valido_foto and
                     nombre and len(nombre) >= 3 and
                     Edad and
@@ -879,7 +875,6 @@ else:
                             'Validacion_INE' : valido_ine,
                             'Validacion_domicilio' : valido_domicilio,
                             'Validacion_curp' : valido_curp,
-                            'Validacion_rfc' : valido_rfc,
                             'Validacion_spei' : valido_spei,
                             'Validacion_foto' : valido_foto,
                             'Comentarios' : Comentarios,
@@ -1072,7 +1067,6 @@ else:
                 valido_ine = st.checkbox("Validación de INE", key="INE_ADV")
                 valido_domicilio = st.checkbox("Validación de Domicilio", key="Domicilio_ADV")
                 valido_curp = st.checkbox("Validación de CURP", key="CURP_ADV")
-                valido_rfc = st.checkbox("Validación de RFC", key="RFC_ADV")
                 valido_spei = st.checkbox("Validación de SPEI", key="SPEI_ADV")
                 valido_foto = st.selectbox("Oferta corresponde al tamaño del negocio", ["Si", "No", "No se aprecía"], key="FOTO_ADV")
 
@@ -1148,7 +1142,6 @@ else:
                             'Validacion_INE' : valido_ine,
                             'Validacion_domicilio' : valido_domicilio,
                             'Validacion_curp' : valido_curp,
-                            'Validacion_rfc' : valido_rfc,
                             'Validacion_spei' : valido_spei,
                             'Validacion_foto' : valido_foto,
                             'Comentarios' : Comentarios,
