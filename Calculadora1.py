@@ -30,7 +30,6 @@ import math
 import pickle 
 import json
 
-st.set_page_config(page_title="App de Clientes", layout="centered")
 # ---------------- CONFIGURACIÓN ----------------
 
 AWS_ACCESS_KEY = os.environ['AWS_ACCESS_KEY_ID']
@@ -145,6 +144,30 @@ def eliminar_registro(Solicitud):
     df = df[df['Solicitud'] != Solicitud]
     guardar_base(df)
 
+## Cargar base ADV
+def cargar_base_ADV():
+    try:
+        response = s3.get_object(Bucket=BUCKET_NAME, Key=ADV)
+        df = pd.read_csv(io.BytesIO(response['Body'].read()), dtype={'BimboID': str,
+                                                                     'blmId' : str, 'Solicitud':str,
+                                                                     'Usuario_registro':str})
+    except s3.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == 'NoSuchKey':
+            df = pd.DataFrame(columns=['edad', 'genero', 'BimboID'])
+        else:
+            raise e
+    return df
+
+def guardar_base_ADV(df):
+    buffer = io.StringIO()
+    df.to_csv(buffer, index=False)
+    s3.put_object(Bucket=BUCKET_NAME, Key=ADV, Body=buffer.getvalue())
+
+def eliminar_registro_ADV(Solicitud):
+    df = cargar_base_ADV()
+    df = df[df['Solicitud'] != Solicitud]
+    guardar_base_ADV(df)
+
 # Tabla de reglas
 reglas = pd.DataFrame({
     "ScoreFico_min": [0, 0, 549, 549, 649, 0, 606],
@@ -153,6 +176,37 @@ reglas = pd.DataFrame({
     "MicroScore_max": [620, 660, 620, 660, 660, 1000, 1000],
     "Grupo": [1, 2, 3, 4, 5, 6, 7]
 })
+
+## rango_montos_ADV
+def obtener_rango_monto_adv(valor):
+    montos = [
+        (0,6000, 1),
+        (6000.1, 8000, 2),
+        (8000.1, 10000, 3),
+        (10000.1, 15000, 4),
+        (15000.1, 10000000000, 5)
+    ]
+    
+    for minimo, maximo, rango in montos:
+        if minimo <= valor <= maximo:
+            return rango
+    return None  # Si no cae en ningún rango
+
+def obtener_porcentaje(rango: int, decil: int) -> str:
+    tabla = {
+        1: [79, 76, 74, 72, 69, 68, 67, 62, 60, 58],
+        2: [70, 67, 65, 62, 60, 59, 58, 53, 51, 49],
+        3: [67, 64, 62, 59, 57, 56, 55, 50, 48, 46],
+        4: [63, 60, 58, 55, 53, 52, 51, 46, 44, 42],
+        5: [62, 60, 57, 55, 52, 51, 50, 46, 44, 42]
+    }
+
+    if rango not in tabla:
+        return "Rango inválido"
+    if decil < 1 or decil > 10:
+        return "Decil inválido"
+
+    return f"{tabla[rango][decil - 1]}%"
 
 ### Decil de riesgos
 def asignar_decil(score_fico, micro_score):
@@ -470,33 +524,23 @@ def oferta_final(min_oferta, max_oferta, oferta_original):
 
 ################################# Manejo de la limpieza del formulario
 if 'limpiar_formulario' in st.session_state and st.session_state['limpiar_formulario']:
-    # Restablecer valores predeterminados para todos los campos
-    st.session_state['Solicitud'] = 0
-    st.session_state['nombre'] = ""
-    st.session_state['comentarios'] = ""
-    st.session_state['Oferta'] = 0
-    st.session_state['nombre'] = ""
+    # Limpieza para TConecta
+    st.session_state['Solicitud'] = ""
     st.session_state['edad'] = 18
-    st.session_state['llamada'] = "No"
+    st.session_state['Oferta'] = 0
+    st.session_state['comentarios'] = ""
+    st.session_state['LLAMADA'] = "No"
     st.session_state['CP'] = ""
     st.session_state['genero'] = "Masculino"
     st.session_state['Dependientes'] = "0"
-    if 'tipo_negocio_especificado' not in st.session_state:
-        st.session_state['tipo_negocio_especificado'] = ""
     st.session_state['Edo_civil'] = "Casado"
     st.session_state['Tipo_negocio'] = "ABARROTES"
+    st.session_state['tipo_negocio_especificado'] = ""
     st.session_state['BimboID'] = ""
     st.session_state['blmId'] = ""
-    
-    # Gestionar MicroScore y ScoreFico según InfoCre
-    st.session_state['InfoCre'] = "Si"  # Valor predeterminado
+    st.session_state['InfoCre'] = "Si"
     st.session_state['MicroScore'] = 0
     st.session_state['ScoreFico'] = 0
-    
-    # Quitar la bandera para evitar limpiar en cada recarga
-    st.session_state['limpiar_formulario'] = False
-
-    # Quitar checkboxes
     st.session_state["INE"] = False
     st.session_state["Domicilio"] = False
     st.session_state["CURP"] = False
@@ -504,7 +548,36 @@ if 'limpiar_formulario' in st.session_state and st.session_state['limpiar_formul
     st.session_state["SPEI"] = False
     st.session_state["FOTO"] = "No"
 
+    # Limpieza para ADV
+    st.session_state['Solicitud_ADV'] = ""
+    st.session_state['edad_ADV'] = 18
+    st.session_state['Oferta_ADV'] = 0
+    st.session_state['comentarios_ADV'] = ""
+    st.session_state['LLAMADA_ADV'] = "No"
+    st.session_state['CP_ADV'] = ""
+    st.session_state['genero_ADV'] = "Masculino"
+    st.session_state['Dependientes_ADV'] = "0"
+    st.session_state['Edo_civil_ADV'] = "Casado"
+    st.session_state['Tipo_negocio_ADV'] = "ABARROTES"
+    st.session_state['tipo_negocio_especificado_ADV'] = ""
+    st.session_state['BimboID_ADV'] = ""
+    st.session_state['blmId_ADV'] = ""
+    st.session_state['InfoCre_ADV'] = "Si"
+    st.session_state['MicroScore_ADV'] = 0
+    st.session_state['ScoreFico_ADV'] = 0
+    st.session_state["INE_ADV"] = False
+    st.session_state["Domicilio_ADV"] = False
+    st.session_state["CURP_ADV"] = False
+    st.session_state["RFC_ADV"] = False
+    st.session_state["SPEI_ADV"] = False
+    st.session_state["FOTO_ADV"] = "No"
+
+    # Quitar bandera
+    st.session_state['limpiar_formulario'] = False
+
 # ---------------- INTERFAZ ----------------
+# Configuración general
+st.set_page_config(page_title="App de Clientes", layout="centered")
 
 st.markdown("""
     <style>
@@ -557,161 +630,458 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-col1, col2 = st.columns([8, 3])  # Ajusta proporción a tu gusto
 
-with col1:
-    st.title("Calculadora T-Conecta")
+# Estado inicial
+if "pestana_activa" not in st.session_state:
+    st.session_state.pestana_activa = "inicio"
 
-with col2:
-    st.image("imagen.png", width=150)
-
-st.markdown("---")
-
-if 'autenticado' not in st.session_state:
+if "autenticado" not in st.session_state:
     st.session_state['autenticado'] = False
 
-if 'usuario_actual' not in st.session_state:
+if "usuario_actual" not in st.session_state:
     st.session_state['usuario_actual'] = ""
 
-# Pantalla de inicio de sesión
+# Funciones navegación
+def ir_a_pestana1():
+    st.session_state.pestana_activa = "Calculadora TConecta"
+
+def ir_a_pestana2():
+    st.session_state.pestana_activa = "Calculadora ADV"
+
+def volver_inicio():
+    st.session_state.pestana_activa = "inicio"
+
+# Encabezado
+col1, col2 = st.columns([5, 3])
+with col1:
+    st.title("Calculadoras")
+with col2:
+    st.image("imagen.png", width=200)
+
+# Login
 if not st.session_state['autenticado']:
     st.title("🔒 Inicio de Sesión")
-    
     with st.form("login_form"):
         usuario = st.text_input("Usuario")
         contraseña = st.text_input("Contraseña", type="password")
         submit_login = st.form_submit_button("Iniciar Sesión")
-        
+
         if submit_login:
-            # Cargar base de usuarios
             usuarios_df = tabla_USU
-            
-            # Verificar credenciales
             if not usuarios_df.empty and ((usuarios_df['Usuario'] == usuario) & (usuarios_df['Pass'] == contraseña)).any():
                 st.session_state['autenticado'] = True
                 st.session_state['usuario_actual'] = usuario
                 st.success("✅ Inicio de sesión exitoso!")
-                st.rerun()  # Recargar la página para mostrar el formulario
+                st.rerun()
             else:
                 st.error("❌ Usuario o contraseña incorrectos.")
+
+# Usuario autenticado
 else:
-    # Aquí iría todo tu código actual del formulario
-    st.title(f"📋 Registro de Clientes - Bienvenido {st.session_state['usuario_actual']}")
-    with st.form("form_cliente"):
+    st.title(f"📋 Bienvenido {st.session_state['usuario_actual']}")
+
+    # Selección de pestaña
+    if st.session_state.pestana_activa == "inicio":
+
+        st.markdown("---")
         col1, col2 = st.columns(2)
         with col1:
-            Solicitud = st.number_input("Solicitud", min_value=0, max_value=100, key = "Solicitud")
-
-            nombre = st.text_input("Nombre completo", max_chars=50, key = "nombre",value="")
-            if nombre and len(nombre) < 3:
-                st.warning("El nombre debe tener al menos 3 caracteres.")
-
-            Edad = st.number_input("Edad", min_value=18, max_value=100, step=1,key = "edad")
-
-            InfoCre = st.selectbox("¿Cuenta con información de Crédito?", ["Si", "No"], key="InfoCre")
-
-            MicroScore = st.number_input(
-                "MicroScore",
-                min_value=-7,
-                max_value=1000,
-                step=1,
-                key="MicroScore"
-            )
-
-            ScoreFico = st.number_input("ScoreFico", 
-                min_value=0, 
-                max_value=1000, 
-                step=1, 
-                key="ScoreFico"
-            )
-
-            Edo_civil = st.selectbox("Estado civil", ["Casado", "Union libre", "Soltero", "Viudo","Divorciado"],key = "Edo_civil")
-
-
-            Oferta = st.number_input("Oferta", min_value=0, max_value=10000000, step=1,key = "Oferta")
-
-            Comentarios = st.text_input("Comentario", max_chars=150, key = "comentarios",value="")
-
-            llamada = st.selectbox("¿Se realizo llamada?", ["Si", "No"],key = "llamada")
-
+            if st.button("Calculadora TConecta"):
+                ir_a_pestana1()
+                st.rerun()
         with col2:
-            genero = st.selectbox("Género", ["Masculino", "Femenino", "Otro"],key = "genero")
+            if st.button("Calculadora ADV"):
+                ir_a_pestana2()
+                st.rerun()
 
-            Dependientes = st.selectbox("Dependiente", ["0", "1", "2", "3", "4", "5", "+5"],key = "Dependientes")
+    # Calculadora TConecta
+    elif st.session_state.pestana_activa == "Calculadora TConecta":
+        st.header("🔹 TConecta")
+        with st.form("form_cliente"):
+            col1, col2 = st.columns(2)
+            with col1:
+                Solicitud = st.number_input("Solicitud", min_value=0, max_value=100, key = "Solicitud")
 
-            CP = st.text_input("Código postal", max_chars=50,key = "CP",value="")
-            resultadosCP = pd.DataFrame()
+                nombre = st.text_input("Nombre completo", max_chars=50, key = "nombre",value="")
+                if nombre and len(nombre) < 3:
+                    st.warning("El nombre debe tener al menos 3 caracteres.")
 
-            if CP:
-                if len(CP) != 5:
-                    st.warning("El CP debe tener al menos 5 caracteres.")
-                else:
-                    resultadosCP = tabla_CPID[tabla_CPID["d_codigo"] == CP]
-                    if not resultadosCP.empty:
-                        st.success("✅ Datos encontrados en BaseCP")
+                Edad = st.number_input("Edad", min_value=18, max_value=100, step=1,key = "edad")
+
+                InfoCre = st.selectbox("¿Cuenta con información de Crédito?", ["Si", "No"], key="InfoCre")
+
+                MicroScore = st.number_input(
+                    "MicroScore",
+                    min_value=-7,
+                    max_value=1000,
+                    step=1,
+                    key="MicroScore"
+                )
+
+                ScoreFico = st.number_input("ScoreFico", 
+                    min_value=0, 
+                    max_value=1000, 
+                    step=1, 
+                    key="ScoreFico"
+                )
+
+                Edo_civil = st.selectbox("Estado civil", ["Casado", "Union libre", "Soltero", "Viudo","Divorciado"],key = "Edo_civil")
+
+
+                Oferta = st.number_input("Oferta", min_value=0, max_value=10000000, step=1,key = "Oferta")
+
+                Comentarios = st.text_input("Comentario", max_chars=150, key = "comentarios",value="")
+
+                llamada = st.selectbox("¿Se realizo llamada?", ["Si", "No"],key = "llamada")
+
+            with col2:
+                genero = st.selectbox("Género", ["Masculino", "Femenino", "Otro"],key = "genero")
+
+                Dependientes = st.selectbox("Dependiente", ["0", "1", "2", "3", "4", "5", "+5"],key = "Dependientes")
+
+                CP = st.text_input("Código postal", max_chars=50,key = "CP",value="")
+                resultadosCP = pd.DataFrame()
+
+                if CP:
+                    if len(CP) != 5:
+                        st.warning("El CP debe tener al menos 5 caracteres.")
                     else:
-                        st.error("No se encontraron datos para ese CP.")
+                        resultadosCP = tabla_CPID[tabla_CPID["d_codigo"] == CP]
+                        if not resultadosCP.empty:
+                            st.success("✅ Datos encontrados en BaseCP")
+                        else:
+                            st.error("No se encontraron datos para ese CP.")
 
-            Tipo_negocio = st.selectbox("Tipo de negocio", 
-                            ['ABARROTES','CONSUMOS','MISCELANEAS','OTROS','SIN INFORMACION'],
-                            key="Tipo_negocio",
-                            on_change=None)  # Asegura que se actualice la interfaz
+                Tipo_negocio = st.selectbox("Tipo de negocio", 
+                                ['ABARROTES','CONSUMOS','MISCELANEAS','OTROS','SIN INFORMACION'],
+                                key="Tipo_negocio",
+                                on_change=None)  # Asegura que se actualice la interfaz
 
-            if st.session_state.Tipo_negocio == "SIN INFORMACION":
-                tipo_negocio_especificado = st.text_input("Especifique el tipo de negocio:", 
-                                                        key="tipo_negocio_especificado")
-            
-            BimboID = st.text_input("BimboID", max_chars=15,key = "BimboID",value="")
-            tabla_AIS["bimboId"] = tabla_AIS["bimboId"].astype(str)
-            resultadosAIS = pd.DataFrame()
+                if st.session_state.Tipo_negocio == "SIN INFORMACION":
+                    tipo_negocio_especificado = st.text_input("Especifique el tipo de negocio:", 
+                                                            key="tipo_negocio_especificado")
+                
+                BimboID = st.text_input("BimboID", max_chars=15,key = "BimboID",value="")
+                tabla_AIS["bimboId"] = tabla_AIS["bimboId"].astype(str)
+                resultadosAIS = pd.DataFrame()
 
-            if BimboID:
-                if len(BimboID) < 3:
-                    st.warning("El BimboID debe tener al menos 3 caracteres.")
-                else:
-                    resultadosAIS = tabla_AIS[tabla_AIS["bimboId"] == BimboID]
-                    if not resultadosAIS.empty:
-                        st.success("✅ Datos encontrados en AIS")
-                        resultadosAIS
+                if BimboID:
+                    if len(BimboID) < 3:
+                        st.warning("El BimboID debe tener al menos 3 caracteres.")
                     else:
-                        st.error("No se encontraron datos para ese BimboID.")
+                        resultadosAIS = tabla_AIS[tabla_AIS["bimboId"] == BimboID]
+                        if not resultadosAIS.empty:
+                            st.success("✅ Datos encontrados en AIS")
+                            resultadosAIS
+                        else:
+                            st.error("No se encontraron datos para ese BimboID.")
 
-                        tabla_AIS["bimboId"] = tabla_AIS["bimboId"].astype(str)
+                            tabla_AIS["bimboId"] = tabla_AIS["bimboId"].astype(str)
 
 
-            blmId = st.text_input("blmId", max_chars=15,key = "blmId",value="")
-            tabla_bimbo["blmId"] = tabla_bimbo["blmId"].astype(str)
-            resultados = pd.DataFrame()
+                blmId = st.text_input("blmId", max_chars=15,key = "blmId",value="")
+                tabla_bimbo["blmId"] = tabla_bimbo["blmId"].astype(str)
+                resultados = pd.DataFrame()
 
-            if blmId:
-                if len(blmId) < 3:
-                    st.warning("El blmId debe tener al menos 3 caracteres.")
-                else:
-                    resultados = tabla_bimbo[tabla_bimbo["blmId"] == blmId]
-                    if not resultados.empty:
-                        st.success("✅ Datos encontrados en Base Bimbo")
+                if blmId:
+                    if len(blmId) < 3:
+                        st.warning("El blmId debe tener al menos 3 caracteres.")
                     else:
-                        st.error("No se encontraron datos para ese blmId.")
+                        resultados = tabla_bimbo[tabla_bimbo["blmId"] == blmId]
+                        if not resultados.empty:
+                            st.success("✅ Datos encontrados en Base Bimbo")
+                        else:
+                            st.error("No se encontraron datos para ese blmId.")
 
-                        tabla_bimbo["blmId"] = tabla_bimbo["blmId"].astype(str)
+                            tabla_bimbo["blmId"] = tabla_bimbo["blmId"].astype(str)
 
-            valido_ine = st.checkbox("Validación de INE" , key="INE")
-            valido_domicilio = st.checkbox("Validación de Domicilio", key="Domicilio")
-            valido_curp = st.checkbox("Validación de CURP", key="CURP")
-            valido_rfc = st.checkbox("Validación de RFC", key="RFC")
-            valido_spei = st.checkbox("Validación de SPEI", key="SPEI")
-            valido_foto = st.selectbox("Oferta corresponde al tamaño del negocio", ["Si", "No", "No se aprecía"],key = "FOTO")
+                valido_ine = st.checkbox("Validación de INE" , key="INE")
+                valido_domicilio = st.checkbox("Validación de Domicilio", key="Domicilio")
+                valido_curp = st.checkbox("Validación de CURP", key="CURP")
+                valido_rfc = st.checkbox("Validación de RFC", key="RFC")
+                valido_spei = st.checkbox("Validación de SPEI", key="SPEI")
+                valido_foto = st.selectbox("Oferta corresponde al tamaño del negocio", ["Si", "No", "No se aprecía"],key = "FOTO")
 
-            # Validaciones de campos obligatorios
+                # Validaciones de campos obligatorios
+                campos_validos = (
+                    Solicitud and
+                    valido_ine and
+                    llamada and 
+                    valido_domicilio and
+                    valido_curp and
+                    valido_rfc and
+                    valido_foto and
+                    nombre and len(nombre) >= 3 and
+                    Edad and
+                    CP and len(CP) == 5 and not resultadosCP.empty and
+                    genero and
+                    Oferta and
+                    Dependientes and
+                    Edo_civil and
+                    (Tipo_negocio != "SIN INFORMACION" or (Tipo_negocio == "SIN INFORMACION" and 'tipo_negocio_especificado' in locals() and tipo_negocio_especificado)) and
+                    BimboID and
+                    blmId and len(blmId) >= 3 and not resultados.empty
+                )
+                
+
+            submit_button = st.form_submit_button("Guardar registro")
+
+            if submit_button:
+                if not campos_validos:
+                    st.warning("⚠️ Por favor, completa todos los campos correctamente antes de enviar.")
+                else:
+                    try:
+                        df = cargar_base()
+                        
+                        # Obtener Score y Casa si se encontró el BimboID
+                        Morosidad_Promedio = resultados.iloc[0]["Morosidad_Promedio"] if not resultados.empty else None
+                        Gradient_Boosting_Proba = resultados.iloc[0]["Gradient Boosting_Proba"] if not resultados.empty else None
+                        Decil_ventas = resultados.iloc[0]["Decil_ventas"] if not resultados.empty else None
+                        PromedioVisitasXMesBimbo = resultados.iloc[0]["PromedioVisitasXMesBimbo"] if not resultados.empty else None
+                        ventaPromedioSemanalUlt12Semanas = resultados.iloc[0]["ventaPromedioSemanalUlt12Semanas"] if not resultados.empty else None
+                        Giro_de_Cliente = resultados.iloc[0]["Giro_de_Cliente"] if not resultados.empty else None
+                        MontoMinCredito = resultados.iloc[0]["MontoMinCredito"] if not resultados.empty else None
+                        DiasConCreditoVigente = resultados.iloc[0]["DiasConCreditoVigente"] if not resultados.empty else None
+                        Estado = resultadosCP.iloc[0]["d_estado"] if not resultadosCP.empty else None
+                        Municipio = resultadosCP.iloc[0]["D_mnpio"] if not resultadosCP.empty else None
+                        Ingreso_empleado = resultadosCP.iloc[0]["Ingreso_empleado"] if not resultadosCP.empty else None
+                        Morosidad = resultadosCP.iloc[0]["Morosidad"] if not resultadosCP.empty else None
+
+                        nuevo = {
+                            'Usuario_registro': str(st.session_state['usuario_actual']),
+                            'Solicitud':str(Solicitud),
+                            'nombre': nombre,
+                            'genero': genero,
+                            'Oferta': Oferta,
+                            'Información de Crédito': InfoCre,
+                            'MicroScore' : MicroScore,
+                            'ScoreFico' : ScoreFico,
+                            'Dependientes' : Dependientes,
+                            'Estado civil' : Edo_civil,
+                            'Tipo de negocio' : tipo_negocio_especificado if (Tipo_negocio == "SIN INFORMACION" and 'tipo_negocio_especificado' in locals() and tipo_negocio_especificado) else Tipo_negocio,
+                            'BimboID': str(BimboID),
+                            'blmId' : str(blmId),
+                            'Estado de Residencia': Estado,
+                            'Municipio de Residencia': Municipio,
+                            'Morosidad' : Morosidad,
+                            'Morosidad_Promedio': Morosidad_Promedio,
+                            'Ingreso_corriente' : Ingreso_empleado,
+                            'Edad': Edad,
+                            'Gradient Boosting_Proba': Gradient_Boosting_Proba,
+                            'Decil_riesgos': asignar_decil(ScoreFico, MicroScore),
+                            'PromedioVisitasXMesBimbo': PromedioVisitasXMesBimbo,
+                            'Decil_ventas': Decil_ventas,
+                            'DiasConCreditoVigente': DiasConCreditoVigente,
+                            'ventaPromedioSemanalUlt12Semanas': ventaPromedioSemanalUlt12Semanas,
+                            'MontoMinCredito': MontoMinCredito,
+                            'Giro_de_Cliente': Giro_de_Cliente,
+                            'Validacion_INE' : valido_ine,
+                            'Validacion_domicilio' : valido_domicilio,
+                            'Validacion_curp' : valido_curp,
+                            'Validacion_rfc' : valido_rfc,
+                            'Validacion_spei' : valido_spei,
+                            'Validacion_foto' : valido_foto,
+                            'Comentarios' : Comentarios,
+                            'Llamada' : llamada
+                        }
+
+                        datos_nuevos = pd.DataFrame([nuevo])
+
+                        # Preprocesar los datos para calificarlos con el modelo de regresion
+                        datos_preprocesados = preprocesar_nuevos_datos(datos_nuevos, modelo_cargado)
+                        
+                        datos_preprocesados['const'] = 1  # Añadir una constante para el intercepto
+
+                        probabilidades = predecir_probabilidades(datos_preprocesados, modelo_cargado)
+
+                        Decil = obtener_decil(probabilidades[0])
+
+                        datos_nuevos["Probabilidad"] = probabilidades
+                        datos_nuevos["Decil_modelo"] = Decil
+
+                        ruta_modelo = "AISMaster_Modelo_20241223131859.Rdata"
+
+                        resultadosAIS["EDAD"] = Edad 
+
+                        # Aplica el modelo a tu DataFrame resultadosAIS
+                        
+                        with st.spinner("Ejecutando modelo AIS en R..."):
+                            try:
+                                resultado = ejecutar_modelo_ais(
+                                    nombre_muestra=resultadosAIS
+                                )
+                                st.success("✅ Modelo AIS ejecutado correctamente.")
+                                st.dataframe(resultado.iloc[:, 2])  # Asegúrate que tiene al menos 3 columnas
+                        
+                            except Exception as e:
+                                st.error(f"❌ Error inesperado durante la ejecución del modelo AIS: {e}")
+                                st.stop()
+                        print("Se corrio bien modelo AIS")
+
+                        a = float(resultado.iloc[0, 2])
+
+                        Decil_AIS = obtener_decil_AIS(a)
+                        print("Se corrio bien decilAIS")
+                        datos_nuevos["Probabilidad_AIS"] = a
+                        datos_nuevos["Decil_AIS"] = Decil_AIS
+
+                        grupo_nombre, grupo_num = calificar_credito(prob_rl=float(probabilidades.iloc[0]), prob_xgb=a, deciles_rl = deciles_rl, deciles_xgb = deciles_xgb)
+                        
+                        datos_nuevos["Grupo_nombre"] = grupo_nombre
+                        datos_nuevos["Grupo_numero"] = grupo_num
+
+                        Desiscion = asignar_desiscion(grupo_num, MicroScore)
+
+                        datos_nuevos['Desiscion'] = Desiscion
+
+                        print(Desiscion)
+
+                        Min_oferta, Max_oferta = montos_grupo(grupo_num, Desiscion)
+
+                        datos_nuevos['Oferta_min'] = Min_oferta
+
+                        datos_nuevos['Oferta_max'] = Max_oferta
+
+                        Oferta_real = oferta_final(Min_oferta, Max_oferta, Oferta)
+
+                        print("Se asigno la funcion de oferta_final")
+
+                        datos_nuevos['Oferta_final'] = Oferta_real
+
+                        print("Se asigno bien desicion y la oferta real")
+                    
+
+                        df = pd.concat([df, datos_nuevos], ignore_index=True)
+                        guardar_base(df)
+                        st.success("✅ Registro guardado correctamente en AWS_S3.")
+
+                        # Guardamos la info en el estado de sesión para mostrar después
+                        st.session_state['mostrar_resultado'] = True
+                        st.session_state['solicitud_guardada'] = Solicitud
+                        st.session_state['nombre_guardado'] = nombre
+                        st.session_state['blmId_guardado'] = str(blmId)
+                        st.session_state['Desicion_guardada'] = str(Desiscion)
+                        st.session_state['Oferta_final'] = Oferta_real
+                        
+                        # Agregar bandera para indicar que se debe limpiar el formulario
+                        st.session_state['limpiar_formulario'] = True
+                        
+                        # Recargar la página para mostrar los campos limpios
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"❌ Error al guardar el registro: {e}")
+
+        # Mostrar el contenedor con el resultado si existe
+        if 'mostrar_resultado' in st.session_state and st.session_state['mostrar_resultado']:
+            with st.container():
+                st.markdown("### Resultado de la Solicitud")
+                st.markdown(f"""
+                **Solicitud:** {st.session_state['solicitud_guardada']}  
+                **Nombre:**  {st.session_state['nombre_guardado']}  
+                **blmId:** {st.session_state['blmId_guardado']}   
+                **Oferta:** ${st.session_state['Oferta_final']:,.0f}
+                """)
+                
+                # Mostrar interpretación visual de la probabilidad
+                Desicion_value = st.session_state['Desicion_guardada']
+                if Desicion_value == "Aceptado":
+                    st.success(f"🟢 Aceptado")
+                else:
+                    st.error(f"🔴 Rechazado")
+
+        st.markdown("---")
+        st.subheader("📊 Registros guardados")
+
+        try:
+            base_actual = cargar_base()
+            if not base_actual.empty:
+                st.dataframe(base_actual)
+            else:
+                st.info("No hay registros guardados todavía.")
+        except Exception as e:
+            st.error(f"❌ Error al cargar la base: {e}")
+
+        if st.button("Volver al inicio"):
+            volver_inicio()
+            st.rerun()
+
+    # Calculadora ADV
+    elif st.session_state.pestana_activa == "Calculadora ADV":
+        st.header("🔸 ADV")
+        with st.form("form_cliente"):
+            col1, col2 = st.columns(2)
+            with col1:
+                Solicitud = st.text_input("Solicitud", max_chars=10, key="Solicitud_ADV", value="")
+
+                Edad = st.number_input("Edad", min_value=18, max_value=100, step=1, key="edad_ADV")
+
+                InfoCre = st.selectbox("¿Cuenta con información de Crédito?", ["Si", "No"], key="InfoCre_ADV")
+
+                MicroScore = st.number_input("MicroScore", min_value=-7, max_value=1000, step=1, key="MicroScore_ADV")
+
+                ScoreFico = st.number_input("ScoreFico", min_value=0, max_value=1000, step=1, key="ScoreFico_ADV")
+
+                Edo_civil = st.selectbox("Estado civil", ["Casado", "Union libre", "Soltero", "Viudo", "Divorciado"], key="Edo_civil_ADV")
+
+                Oferta = st.number_input("Oferta", min_value=0, max_value=10000000, step=1, key="Oferta_ADV")
+
+                Comentarios = st.text_input("Comentario", max_chars=150, key="comentarios_ADV", value="")
+
+                llamada = st.selectbox("¿Se realizo llamada?", ["Si", "No"], key="LLAMADA_ADV")
+
+            with col2:
+                genero = st.selectbox("Género", ["Masculino", "Femenino", "Otro"], key="genero_ADV")
+
+                Dependientes = st.selectbox("Dependiente", ["0", "1", "2", "3", "4", "5", "+5"], key="Dependientes_ADV")
+
+                CP = st.text_input("Código postal", max_chars=50, key="CP_ADV", value="")
+                resultadosCP = pd.DataFrame()
+
+                if CP:
+                    if len(CP) != 5:
+                        st.warning("El CP debe tener al menos 5 caracteres.")
+                    else:
+                        resultadosCP = tabla_CPID[tabla_CPID["d_codigo"] == CP]
+                        if not resultadosCP.empty:
+                            st.success("✅ Datos encontrados en BaseCP")
+                        else:
+                            st.error("No se encontraron datos para ese CP.")
+
+                Tipo_negocio = st.selectbox("Tipo de negocio", ['ABARROTES', 'CONSUMOS', 'MISCELANEAS', 'OTROS', 'SIN INFORMACION'], key="Tipo_negocio_ADV")
+
+                if st.session_state.Tipo_negocio_ADV == "SIN INFORMACION":
+                    tipo_negocio_especificado = st.text_input("Especifique el tipo de negocio:", key="tipo_negocio_especificado_ADV")
+
+                BimboID = st.text_input("BimboID", max_chars=15, key="BimboID_ADV", value="")
+
+                blmId = st.text_input("blmId", max_chars=15, key="blmId_ADV", value="")
+                tabla_bimbo["blmId"] = tabla_bimbo["blmId"].astype(str)
+                resultados = pd.DataFrame()
+
+                if blmId:
+                    if len(blmId) < 3:
+                        st.warning("El blmId debe tener al menos 3 caracteres.")
+                    else:
+                        resultados = tabla_bimbo[tabla_bimbo["blmId"] == blmId]
+                        if not resultados.empty:
+                            st.success("✅ Datos encontrados en Base Bimbo")
+                        else:
+                            st.error("No se encontraron datos para ese blmId.")
+
+                valido_ine = st.checkbox("Validación de INE", key="INE_ADV")
+                valido_domicilio = st.checkbox("Validación de Domicilio", key="Domicilio_ADV")
+                valido_curp = st.checkbox("Validación de CURP", key="CURP_ADV")
+                valido_rfc = st.checkbox("Validación de RFC", key="RFC_ADV")
+                valido_spei = st.checkbox("Validación de SPEI", key="SPEI_ADV")
+                valido_foto = st.selectbox("Oferta corresponde al tamaño del negocio", ["Si", "No", "No se aprecía"], key="FOTO_ADV")
+
             campos_validos = (
                 Solicitud and
                 valido_ine and
                 llamada and 
                 valido_domicilio and
                 valido_curp and
-                valido_rfc and
                 valido_foto and
-                nombre and len(nombre) >= 3 and
                 Edad and
                 CP and len(CP) == 5 and not resultadosCP.empty and
                 genero and
@@ -722,209 +1092,145 @@ else:
                 BimboID and
                 blmId and len(blmId) >= 3 and not resultados.empty
             )
-            
 
-        submit_button = st.form_submit_button("Guardar registro")
+            submit_button = st.form_submit_button("Guardar registro")
 
-        if submit_button:
-            if not campos_validos:
-                st.warning("⚠️ Por favor, completa todos los campos correctamente antes de enviar.")
-            else:
-                try:
-                    df = cargar_base()
-                    
-                    # Obtener Score y Casa si se encontró el BimboID
-                    Morosidad_Promedio = resultados.iloc[0]["Morosidad_Promedio"] if not resultados.empty else None
-                    Gradient_Boosting_Proba = resultados.iloc[0]["Gradient Boosting_Proba"] if not resultados.empty else None
-                    Decil_ventas = resultados.iloc[0]["Decil_ventas"] if not resultados.empty else None
-                    PromedioVisitasXMesBimbo = resultados.iloc[0]["PromedioVisitasXMesBimbo"] if not resultados.empty else None
-                    ventaPromedioSemanalUlt12Semanas = resultados.iloc[0]["ventaPromedioSemanalUlt12Semanas"] if not resultados.empty else None
-                    Giro_de_Cliente = resultados.iloc[0]["Giro_de_Cliente"] if not resultados.empty else None
-                    MontoMinCredito = resultados.iloc[0]["MontoMinCredito"] if not resultados.empty else None
-                    DiasConCreditoVigente = resultados.iloc[0]["DiasConCreditoVigente"] if not resultados.empty else None
-                    Estado = resultadosCP.iloc[0]["d_estado"] if not resultadosCP.empty else None
-                    Municipio = resultadosCP.iloc[0]["D_mnpio"] if not resultadosCP.empty else None
-                    Ingreso_empleado = resultadosCP.iloc[0]["Ingreso_empleado"] if not resultadosCP.empty else None
-                    Morosidad = resultadosCP.iloc[0]["Morosidad"] if not resultadosCP.empty else None
-
-                    nuevo = {
-                        'Usuario_registro': str(st.session_state['usuario_actual']),
-                        'Solicitud':str(Solicitud),
-                        'nombre': nombre,
-                        'genero': genero,
-                        'Oferta': Oferta,
-                        'Información de Crédito': InfoCre,
-                        'MicroScore' : MicroScore,
-                        'ScoreFico' : ScoreFico,
-                        'Dependientes' : Dependientes,
-                        'Estado civil' : Edo_civil,
-                        'Tipo de negocio' : tipo_negocio_especificado if (Tipo_negocio == "SIN INFORMACION" and 'tipo_negocio_especificado' in locals() and tipo_negocio_especificado) else Tipo_negocio,
-                        'BimboID': str(BimboID),
-                        'blmId' : str(blmId),
-                        'Estado de Residencia': Estado,
-                        'Municipio de Residencia': Municipio,
-                        'Morosidad' : Morosidad,
-                        'Morosidad_Promedio': Morosidad_Promedio,
-                        'Ingreso_corriente' : Ingreso_empleado,
-                        'Edad': Edad,
-                        'Gradient Boosting_Proba': Gradient_Boosting_Proba,
-                        'Decil_riesgos': asignar_decil(ScoreFico, MicroScore),
-                        'PromedioVisitasXMesBimbo': PromedioVisitasXMesBimbo,
-                        'Decil_ventas': Decil_ventas,
-                        'DiasConCreditoVigente': DiasConCreditoVigente,
-                        'ventaPromedioSemanalUlt12Semanas': ventaPromedioSemanalUlt12Semanas,
-                        'MontoMinCredito': MontoMinCredito,
-                        'Giro_de_Cliente': Giro_de_Cliente,
-                        'Validacion_INE' : valido_ine,
-                        'Validacion_domicilio' : valido_domicilio,
-                        'Validacion_curp' : valido_curp,
-                        'Validacion_rfc' : valido_rfc,
-                        'Validacion_spei' : valido_spei,
-                        'Validacion_foto' : valido_foto,
-                        'Comentarios' : Comentarios,
-                        'Llamada' : llamada
-                    }
-
-                    datos_nuevos = pd.DataFrame([nuevo])
-
-                    # Preprocesar los datos para calificarlos con el modelo de regresion
-                    datos_preprocesados = preprocesar_nuevos_datos(datos_nuevos, modelo_cargado)
-                    
-                    datos_preprocesados['const'] = 1  # Añadir una constante para el intercepto
-
-                    probabilidades = predecir_probabilidades(datos_preprocesados, modelo_cargado)
-
-                    Decil = obtener_decil(probabilidades[0])
-
-                    datos_nuevos["Probabilidad"] = probabilidades
-                    datos_nuevos["Decil_modelo"] = Decil
-
-                    ruta_modelo = "AISMaster_Modelo_20241223131859.Rdata"
-
-                    resultadosAIS["EDAD"] = Edad 
-
-                    # Aplica el modelo a tu DataFrame resultadosAIS
-                    
-                    with st.spinner("Ejecutando modelo AIS en R..."):
-                        try:
-                            resultado = ejecutar_modelo_ais(
-                                nombre_muestra=resultadosAIS
-                            )
-                            st.success("✅ Modelo AIS ejecutado correctamente.")
-                            st.dataframe(resultado.iloc[:, 2])  # Asegúrate que tiene al menos 3 columnas
-                    
-                        except Exception as e:
-                            st.error(f"❌ Error inesperado durante la ejecución del modelo AIS: {e}")
-                            st.stop()
-                    print("Se corrio bien modelo AIS")
-
-                    a = float(resultado.iloc[0, 2])
-
-                    Decil_AIS = obtener_decil_AIS(a)
-                    print("Se corrio bien decilAIS")
-                    datos_nuevos["Probabilidad_AIS"] = a
-                    datos_nuevos["Decil_AIS"] = Decil_AIS
-
-                    grupo_nombre, grupo_num = calificar_credito(prob_rl=float(probabilidades.iloc[0]), prob_xgb=a, deciles_rl = deciles_rl, deciles_xgb = deciles_xgb)
-                    
-                    datos_nuevos["Grupo_nombre"] = grupo_nombre
-                    datos_nuevos["Grupo_numero"] = grupo_num
-
-                    Desiscion = asignar_desiscion(grupo_num, MicroScore)
-
-                    datos_nuevos['Desiscion'] = Desiscion
-
-                    print(Desiscion)
-
-                    Min_oferta, Max_oferta = montos_grupo(grupo_num, Desiscion)
-
-                    datos_nuevos['Oferta_min'] = Min_oferta
-
-                    datos_nuevos['Oferta_max'] = Max_oferta
-
-                    Oferta_real = oferta_final(Min_oferta, Max_oferta, Oferta)
-
-                    print("Se asigno la funcion de oferta_final")
-
-                    datos_nuevos['Oferta_final'] = Oferta_real
-
-                    print("Se asigno bien desicion y la oferta real")
-                
-
-                    df = pd.concat([df, datos_nuevos], ignore_index=True)
-                    guardar_base(df)
-                    st.success("✅ Registro guardado correctamente en AWS_S3.")
-
-                    # Guardamos la info en el estado de sesión para mostrar después
-                    st.session_state['mostrar_resultado'] = True
-                    st.session_state['solicitud_guardada'] = Solicitud
-                    st.session_state['nombre_guardado'] = nombre
-                    st.session_state['blmId_guardado'] = str(blmId)
-                    st.session_state['Desicion_guardada'] = str(Desiscion)
-                    st.session_state['Oferta_final'] = Oferta_real
-                    
-                    # Agregar bandera para indicar que se debe limpiar el formulario
-                    st.session_state['limpiar_formulario'] = True
-                    
-                    # Recargar la página para mostrar los campos limpios
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"❌ Error al guardar el registro: {e}")
-
-    # Mostrar el contenedor con el resultado si existe
-    if 'mostrar_resultado' in st.session_state and st.session_state['mostrar_resultado']:
-        with st.container():
-            st.markdown("### Resultado de la Solicitud")
-            st.markdown(f"""
-            **Solicitud:** {st.session_state['solicitud_guardada']}  
-            **Nombre:**  {st.session_state['nombre_guardado']}  
-            **blmId:** {st.session_state['blmId_guardado']}   
-            **Oferta:** ${st.session_state['Oferta_final']:,.0f}
-            """)
-            
-            # Mostrar interpretación visual de la probabilidad
-            Desicion_value = st.session_state['Desicion_guardada']
-            if Desicion_value == "Aceptado":
-                st.success(f"🟢 Aceptado")
-            else:
-                st.error(f"🔴 Rechazado")
-
-    st.markdown("---")
-    st.subheader("📊 Registros guardados")
-
-    try:
-        base_actual = cargar_base()
-        if not base_actual.empty:
-            st.dataframe(base_actual)
-        else:
-            st.info("No hay registros guardados todavía.")
-    except Exception as e:
-        st.error(f"❌ Error al cargar la base: {e}")
-
-    # Campo de entrada para el ID del cliente a eliminar
-    st.markdown("---")
-    id_cliente_eliminar = st.text_input("Introduce el ID del cliente a eliminar:")
-
-    if st.button("❌ Eliminar Cliente"):
-        if id_cliente_eliminar:
-            try:
-                df = cargar_base()
-                if id_cliente_eliminar in df['Solicitud'].values:
-                    eliminar_registro(id_cliente_eliminar)
-                    st.success(f"✅ La solicitud {id_cliente_eliminar} ha sido eliminado.")
-                    st.rerun()  
+            if submit_button:
+                if not campos_validos:
+                    st.warning("⚠️ Por favor, completa todos los campos correctamente antes de enviar.")
                 else:
-                    st.error(f"No se encontró la solicitud {id_cliente_eliminar}.")
-            except Exception as e:
-                st.error(f"❌ Error al eliminar la solicitud: {e}")
-        else:
-            st.warning("Por favor, ingresa una solicitud para eliminar.")
-    # Botón de cierre de sesión
+                    try:
+                        df = cargar_base_ADV()
+                        
+                        # Obtener Score y Casa si se encontró el BimboID
+                        Morosidad_Promedio = resultados.iloc[0]["Morosidad_Promedio"] if not resultados.empty else None
+                        Gradient_Boosting_Proba = resultados.iloc[0]["Gradient Boosting_Proba"] if not resultados.empty else None
+                        Decil_ventas = resultados.iloc[0]["Decil_ventas"] if not resultados.empty else None
+                        PromedioVisitasXMesBimbo = resultados.iloc[0]["PromedioVisitasXMesBimbo"] if not resultados.empty else None
+                        ventaPromedioSemanalUlt12Semanas = resultados.iloc[0]["ventaPromedioSemanalUlt12Semanas"] if not resultados.empty else None
+                        Giro_de_Cliente = resultados.iloc[0]["Giro_de_Cliente"] if not resultados.empty else None
+                        MontoMinCredito = resultados.iloc[0]["MontoMinCredito"] if not resultados.empty else None
+                        DiasConCreditoVigente = resultados.iloc[0]["DiasConCreditoVigente"] if not resultados.empty else None
+                        Estado = resultadosCP.iloc[0]["d_estado"] if not resultadosCP.empty else None
+                        Municipio = resultadosCP.iloc[0]["D_mnpio"] if not resultadosCP.empty else None
+                        Ingreso_empleado = resultadosCP.iloc[0]["Ingreso_empleado"] if not resultadosCP.empty else None
+                        Morosidad = resultadosCP.iloc[0]["Morosidad"] if not resultadosCP.empty else None
+
+                        nuevo = {
+                            'Usuario_registro': str(st.session_state['usuario_actual']),
+                            'Solicitud': Solicitud,
+                            #'nombre': nombre,
+                            'genero': genero,
+                            'Oferta': Oferta,
+                            'Información de Crédito': InfoCre,
+                            'MicroScore' : MicroScore,
+                            'ScoreFico' : ScoreFico,
+                            'Dependientes' : Dependientes,
+                            'Estado civil' : Edo_civil,
+                            'Tipo de negocio' : tipo_negocio_especificado if (Tipo_negocio == "SIN INFORMACION" and 'tipo_negocio_especificado' in locals() and tipo_negocio_especificado) else Tipo_negocio,
+                            'BimboID': str(BimboID),
+                            'blmId' : str(blmId),
+                            'Estado de Residencia': Estado,
+                            'Municipio de Residencia': Municipio,
+                            'Morosidad' : Morosidad,
+                            'Morosidad_Promedio': Morosidad_Promedio,
+                            'Ingreso_corriente' : Ingreso_empleado,
+                            'Edad': Edad,
+                            'Gradient Boosting_Proba': Gradient_Boosting_Proba,
+                            'Decil_riesgos': asignar_decil(ScoreFico, MicroScore),
+                            'PromedioVisitasXMesBimbo': PromedioVisitasXMesBimbo,
+                            'Decil_ventas': Decil_ventas,
+                            'DiasConCreditoVigente': DiasConCreditoVigente,
+                            'ventaPromedioSemanalUlt12Semanas': ventaPromedioSemanalUlt12Semanas,
+                            'MontoMinCredito': MontoMinCredito,
+                            'Giro_de_Cliente': Giro_de_Cliente,
+                            'Validacion_INE' : valido_ine,
+                            'Validacion_domicilio' : valido_domicilio,
+                            'Validacion_curp' : valido_curp,
+                            'Validacion_rfc' : valido_rfc,
+                            'Validacion_spei' : valido_spei,
+                            'Validacion_foto' : valido_foto,
+                            'Comentarios' : Comentarios,
+                            'Llamada' : llamada
+                        }
+
+                        datos_nuevos = pd.DataFrame([nuevo])
+
+                        rango_monto = obtener_rango_monto_adv(Oferta)
+
+                        Decil_riesgos = asignar_decil(ScoreFico, MicroScore)
+
+                        Tasa = obtener_porcentaje(rango_monto, Decil_riesgos)
+
+                        Desiscion = asignar_desiscion_ADV(Decil_riesgos)
+
+                        datos_nuevos["Rango_monto"] = rango_monto
+
+                        datos_nuevos["Tasa"] = Tasa
+
+                        datos_nuevos["Desicion"] = Desiscion
+
+                        df = pd.concat([df, datos_nuevos], ignore_index=True)
+                        guardar_base_ADV(df)
+                        st.success("✅ Registro guardado correctamente en AWS_S3.")
+
+                        # Guardamos la info en el estado de sesión para mostrar después
+                        st.session_state['mostrar_resultado'] = True
+                        st.session_state['solicitud_guardada'] = Solicitud
+                        st.session_state['blmId_guardado'] = str(blmId)
+                        st.session_state['Decil_riesgos'] = Decil_riesgos
+                        st.session_state['Desicion_guardada'] = str(Desiscion)
+                        st.session_state['Oferta_guardada'] = int(Oferta)  # Conversión explícita a entero
+                        st.session_state['Tasa_guardada'] = str(Tasa)      # Conversión explícita a string
+                        
+                        st.write(f"Debug - Oferta asignada: {int(Oferta)}")
+                        st.write(f"Debug - Tasa asignada: {str(Tasa)}")
+                        # Agregar bandera para indicar que se debe limpiar el formulario
+                        st.session_state['limpiar_formulario'] = True
+                        
+                        # Recargar la página para mostrar los campos limpios
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"❌ Error al guardar el registro: {e}")
+
+        # Mostrar el contenedor con el resultado si existe
+        if 'mostrar_resultado' in st.session_state and st.session_state['mostrar_resultado']:
+            with st.container():
+                st.markdown("### Resultado de la Solicitud")
+                st.markdown(f"""
+                **Solicitud:** {st.session_state['solicitud_guardada']}   
+                **blmId:** {st.session_state['blmId_guardado']}   
+                **Decil:** {st.session_state['Decil_riesgos']}   
+                **Oferta:** ${int(st.session_state['Oferta_guardada']):,}   
+                **Tasa:** {st.session_state['Tasa_guardada']}   
+                """)
+                
+                # Mostrar interpretación visual de la probabilidad
+                Desicion_value = st.session_state['Desicion_guardada']
+                if Desicion_value == "Aceptado":
+                    st.success(f"🟢 Aceptado")
+                else:
+                    st.error(f"🔴 Rechazado")
+
+        st.markdown("---")
+        st.subheader("📊 Registros guardados")
+
+        try:
+            base_actual = cargar_base_ADV()
+            if not base_actual.empty:
+                st.dataframe(base_actual)
+            else:
+                st.info("No hay registros guardados todavía.")
+        except Exception as e:
+            st.error(f"❌ Error al cargar la base: {e}")
+
+        if st.button("Volver al inicio"):
+            volver_inicio()
+            st.rerun()
+
+    # Cerrar sesión
     if st.sidebar.button("Cerrar Sesión"):
         st.session_state['autenticado'] = False
         st.session_state['usuario_actual'] = ""
+        st.session_state['pestana_activa'] = "inicio"
         st.rerun()
-
-
-
-
