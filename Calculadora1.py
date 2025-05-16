@@ -502,7 +502,7 @@ if 'limpiar_formulario' in st.session_state and st.session_state['limpiar_formul
     st.session_state["CURP"] = False
     st.session_state["RFC"] = False
     st.session_state["SPEI"] = False
-    st.session_state["FOTO"] = False
+    st.session_state["FOTO"] = "No"
 
 # ---------------- INTERFAZ ----------------
 
