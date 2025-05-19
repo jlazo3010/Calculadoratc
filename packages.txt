@@ -1,6 +1,2 @@
 r-base
 r-base-dev
-r-cran-dplyr
-r-cran-fastdummies
-r-cran-xgboost
-r-cran-remotes
