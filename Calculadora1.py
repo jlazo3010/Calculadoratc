@@ -308,18 +308,6 @@ categorical_transformer_label = Pipeline(steps=[
     ('imputer', SimpleImputer(strategy='constant', fill_value='unknown')),
     ('label', MultiColumnLabelEncoder(handle_unknown='ignore'))
 ])
-
-# Finalmente, define la función para cargar el modelo
-def cargar_modelo(ruta_modelo='modelo_regresion_logistica_v2.pkl'):
-    """
-    Carga el modelo de regresión logística guardado previamente
-    """
-    with open(ruta_modelo, 'rb') as file:
-        modelo_cargado = pickle.load(file)
-    return modelo_cargado
-
-# Y ahora sí, carga el modelo
-modelo_cargado = cargar_modelo()
  
 # Función para preprocesar nuevos datos
 def preprocesar_nuevos_datos(datos_nuevos, modelo_cargado):
@@ -353,6 +341,18 @@ def predecir_probabilidades(datos_preprocesados, modelo_cargado):
     probabilidades = modelo_cargado['model'].predict(X_const)
    
     return probabilidades
+
+# Finalmente, define la función para cargar el modelo
+def cargar_modelo(ruta_modelo='modelo_regresion_logistica_v2.pkl'):
+    """
+    Carga el modelo de regresión logística guardado previamente
+    """
+    with open(ruta_modelo, 'rb') as file:
+        modelo_cargado = pickle.load(file)
+    return modelo_cargado
+
+# Y ahora sí, carga el modelo
+modelo_cargado = cargar_modelo()
 
 
 ############################## FUNCIONES PARA ASIGNACIÓN FINAL DE DECIL ###############################
