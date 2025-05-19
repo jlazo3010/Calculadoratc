@@ -70,7 +70,7 @@ def ejecutar_modelo_ais(nombre_muestra=None):
                     if (!require("remotes", quietly = TRUE)) {{
                         install.packages("remotes", repos = "https://cloud.r-project.org")
                     }}
-                    remotes::install_github("dmlc/xgboost@release_1.4", subdir = "R-package")
+                    install.packages("https://cran.r-project.org/src/contrib/Archive/xgboost/xgboost_1.4.1.1.tar.gz", repos = NULL, type = "source")
                 }} else {{
                     install.packages(pkg, repos = "https://cloud.r-project.org")
                 }}
