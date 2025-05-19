@@ -271,13 +271,7 @@ def asignar_desiscion_ADV(Decil):
         return "Aceptado"
 
 ############################## FUNCIONES PARA MODELO RL ###############################
-# datos numéricos
-numerical_transformer = Pipeline(steps=[
-    ('imputer', SimpleImputer(strategy='median')),
-    ('scaler', StandardScaler())
-])
- 
-# datos categóricos con muchas categorías
+# Luego, define la clase MultiColumnLabelEncoder
 class MultiColumnLabelEncoder(BaseEstimator, TransformerMixin):
     def __init__(self, handle_unknown='error'):
         self.encoders = None
@@ -303,13 +297,19 @@ class MultiColumnLabelEncoder(BaseEstimator, TransformerMixin):
     
     def fit_transform(self, X, y=None):
         return self.fit(X, y).transform(X)
- 
+
+# Después, define las transformaciones
+numerical_transformer = Pipeline(steps=[
+    ('imputer', SimpleImputer(strategy='median')),
+    ('scaler', StandardScaler())
+])
+
 categorical_transformer_label = Pipeline(steps=[
     ('imputer', SimpleImputer(strategy='constant', fill_value='unknown')),
     ('label', MultiColumnLabelEncoder(handle_unknown='ignore'))
 ])
 
-# Función para cargar el modelo
+# Finalmente, define la función para cargar el modelo
 def cargar_modelo(ruta_modelo='modelo_regresion_logistica_v2.pkl'):
     """
     Carga el modelo de regresión logística guardado previamente
@@ -317,6 +317,9 @@ def cargar_modelo(ruta_modelo='modelo_regresion_logistica_v2.pkl'):
     with open(ruta_modelo, 'rb') as file:
         modelo_cargado = pickle.load(file)
     return modelo_cargado
+
+# Y ahora sí, carga el modelo
+modelo_cargado = cargar_modelo('modelo_regresion_logistica_v2.pkl')
  
 # Función para preprocesar nuevos datos
 def preprocesar_nuevos_datos(datos_nuevos, modelo_cargado):
@@ -350,9 +353,6 @@ def predecir_probabilidades(datos_preprocesados, modelo_cargado):
     probabilidades = modelo_cargado['model'].predict(X_const)
    
     return probabilidades
- 
-# Cargar el modelo
-modelo_cargado = cargar_modelo('modelo_regresion_logistica_v2.pkl')
 
 
 ############################## FUNCIONES PARA ASIGNACIÓN FINAL DE DECIL ###############################
@@ -700,7 +700,7 @@ else:
         with st.form("form_cliente"):
             col1, col2 = st.columns(2)
             with col1:
-                Solicitud = st.number_input("Solicitud", min_value=5000, max_value=10000000000, key = "Solicitud", format="%d")
+                Solicitud = st.number_input("Solicitud", min_value=5000, max_value=10000000000, key = "Solicitud", step = None)
 
                 nombre = st.text_input("Nombre completo", max_chars=50, key = "nombre",value="")
                 if nombre and len(nombre) < 3:
