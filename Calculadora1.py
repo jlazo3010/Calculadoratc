@@ -347,9 +347,16 @@ def cargar_modelo(ruta_modelo='modelo_regresion_logistica_v2.pkl'):
     """
     Carga el modelo de regresión logística guardado previamente
     """
-    with open(ruta_modelo, 'rb') as file:
-        modelo_cargado = pickle.load(file)
-    return modelo_cargado
+    try:
+        with open(ruta_modelo, 'rb') as file:
+            modelo_cargado = pickle.load(file)
+        return modelo_cargado
+    except FileNotFoundError:
+        print(f"Error: No se encontró el archivo {ruta_modelo}")
+        return None
+    except Exception as e:
+        print(f"Error al cargar el modelo: {str(e)}")
+        return None
 
 # Y ahora sí, carga el modelo
 modelo_cargado = cargar_modelo()
