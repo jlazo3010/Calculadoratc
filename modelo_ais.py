@@ -113,18 +113,24 @@ def ejecutar_modelo_ais(
     if (length(packages_to_install) > 0) {{
         cat("Instalando paquetes necesarios:", paste(packages_to_install, collapse=", "), "\\n")
         for (pkg in packages_to_install) {{
-            tryCatch({{
-                if (pkg == "xgboost") {{
-                    if (!require("remotes", quietly = TRUE)) {{
-                        install.packages("remotes", repos = "https://cloud.r-project.org", lib = Sys.getenv("R_LIBS_USER"), quiet = TRUE)
+            tryCatch(
+                {{
+                    if (pkg == "remotes") {{
+                        install.packages("remotes", repos = "https://cloud.r-project.org", lib = Sys.getenv("R_LIBS_USER"), quiet = TRUE) # type: ignore
+                    }} else if (pkg == "xgboost") {{
+                        # Verificar que remotes esté instalado antes de instalar xgboost
+                        if (!require("remotes", quietly = TRUE)) {{
+                            stop("El paquete 'remotes' no está instalado.")
+                        }}
+                        remotes::install_github("dmlc/xgboost", subdir = "r-package", lib = Sys.getenv("R_LIBS_USER"), upgrade = "never")
+                    }} else {{
+                        install.packages(pkg, repos = "https://cloud.r-project.org", lib = Sys.getenv("R_LIBS_USER"), quiet = TRUE)
                     }}
-                    remotes::install_github("dmlc/xgboost", subdir = "R-package", lib = Sys.getenv("R_LIBS_USER"), upgrade = "never")
-                }} else {{
-                    install.packages(pkg, repos = "https://cloud.r-project.org", lib = Sys.getenv("R_LIBS_USER"), quiet = TRUE)
+                }},
+                error = function(e) {{
+                    cat("❌ error al instalar", pkg, ":", e$message, "\\n")
                 }}
-            }}, error = function(e) {{
-                cat("❌ Error al instalar", pkg, ":", e$message, "\\n")
-            }})
+            )
         }}
     }}
     
