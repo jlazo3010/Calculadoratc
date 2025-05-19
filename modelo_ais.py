@@ -94,73 +94,69 @@ def ejecutar_modelo_ais(
     
     # Crear script R temporal
     r_script_content = f"""
-    # Configurar opciones de R para evitar problemas comunes
-    options(warn = 1)  # Mostrar advertencias cuando ocurran
+    # configurar opciones de r para evitar problemas comunes
+    options(warn = 1)  # mostrar advertencias cuando ocurran
 
-    # Crear carpeta de librerías de usuario si no existe
-    if (!dir.exists(Sys.getenv("R_LIBS_USER"))) {{
-        dir.create(Sys.getenv("R_LIBS_USER"), recursive = TRUE)
-        cat("Carpeta R_LIBS_USER creada:", Sys.getenv("R_LIBS_USER"), "\\n")
+    # crear carpeta de librerías de usuario si no existe
+    if (!dir.exists(sys.getenv("r_libs_user"))) {{
+        dir.create(sys.getenv("r_libs_user"), recursive = TRUE)
+        cat("carpeta r_libs_user creada:", sys.getenv("r_libs_user"), "\\n")
     }}
 
-    .libPaths(c(Sys.getenv("R_LIBS_USER"), .libPaths()))
+    .libpaths(c(sys.getenv("r_libs_user"), .libpaths()))
 
-    # Paquetes requeridos
-    packages_needed <- c("Matrix", "xgboost", "dplyr", "fastDummies", "remotes")
-    packages_to_install <- packages_needed[!packages_needed %in% installed.packages()[,"Package"]]
+    # paquetes requeridos
+    packages_needed <- c("matrix", "xgboost", "dplyr", "fastdummies", "remotes")
+    packages_to_install <- packages_needed[!packages_needed %in% installed.packages()[,"package"]]
 
-    # Instalar paquetes desde CRAN o GitHub
+    # instalar paquetes desde cran o github
     if (length(packages_to_install) > 0) {{
-        cat("Instalando paquetes necesarios:", paste(packages_to_install, collapse=", "), "\\n")
+        cat("instalando paquetes necesarios:", paste(packages_to_install, collapse=", "), "\\n")
         for (pkg in packages_to_install) {{
-            tryCatch(
-                {{
-                    if (pkg == "remotes") {{
-                        install.packages("remotes", repos = "https://cloud.r-project.org", lib = Sys.getenv("R_LIBS_USER"), quiet = TRUE) # type: ignore
-                    }} else if (pkg == "xgboost") {{
-                        # Verificar que remotes esté instalado antes de instalar xgboost
-                        if (!require("remotes", quietly = TRUE)) {{
-                            stop("El paquete 'remotes' no está instalado.")
-                        }}
-                        remotes::install_github("dmlc/xgboost", subdir = "r-package", lib = Sys.getenv("R_LIBS_USER"), upgrade = "never")
-                    }} else {{
-                        install.packages(pkg, repos = "https://cloud.r-project.org", lib = Sys.getenv("R_LIBS_USER"), quiet = TRUE)
+            tryCatch({{
+                if (pkg == "remotes") {{
+                    install.packages("remotes", repos = "https://cloud.r-project.org", lib = sys.getenv("r_libs_user"), quiet = TRUE)
+                }} else if (pkg == "xgboost") {{
+                    # verificar que remotes esté instalado antes de instalar xgboost
+                    if (!require("remotes", quietly = TRUE)) {{
+                        stop("El paquete 'remotes' no está instalado.")
                     }}
-                }},
-                error = function(e) {{
-                    cat("❌ error al instalar", pkg, ":", e$message, "\\n")
+                    remotes::install_github("dmlc/xgboost", subdir = "r-package", lib = sys.getenv("r_libs_user"), upgrade = "never")
+                }} else {{
+                    install.packages(pkg, repos = "https://cloud.r-project.org", lib = sys.getenv("r_libs_user"), quiet = TRUE)
                 }}
-            )
+            }}, error = function(e) {{
+                cat("❌ error al instalar", pkg, ":", e$message, "\\n")
+            }})
         }}
     }}
-    
 
-    # Intentar cargar los paquetes
+    # intentar cargar los paquetes
     for (pkg in packages_needed) {{
-        cat("Cargando paquete:", pkg, "\\n")
+        cat("cargando paquete:", pkg, "\\n")
         if (!require(pkg, character.only = TRUE, quietly = TRUE)) {{
-            cat("❌ Error al cargar el paquete:", pkg, "\\n")
-            stop(paste("No se pudo cargar el paquete", pkg))
+            cat("❌ error al cargar el paquete:", pkg, "\\n")
+            stop(paste("no se pudo cargar el paquete", pkg))
         }}
     }}
     
 
-    # Debugging - Mostrar directorio de trabajo actual y modelo a cargar
-    cat("Directorio de trabajo:", getwd(), "\\n")
-    cat("Ruta del modelo a cargar:", "{nombre_modelo_r}", "\\n")
-    cat("¿El archivo existe?:", file.exists("{nombre_modelo_r}"), "\\n")
+    # debugging - mostrar directorio de trabajo actual y modelo a cargar
+    cat("directorio de trabajo:", getwd(), "\\n")
+    cat("ruta del modelo a cargar:", "{nombre_modelo_r}", "\\n")
+    cat("¿el archivo existe?:", file.exists("{nombre_modelo_r}"), "\\n")
 
     if (!file.exists("{nombre_modelo_r}")) {{
-        stop(paste0("El archivo del modelo no existe en la ruta: ", "{nombre_modelo_r}"))
+        stop(paste0("el archivo del modelo no existe en la ruta: ", "{nombre_modelo_r}"))
     }}
 
     tryCatch({{
         df_python <- read.csv("{input_csv_path_r}")
-        cat("Datos cargados exitosamente, dimensiones:", dim(df_python)[1], "x", dim(df_python)[2], "\\n")
+        cat("datos cargados exitosamente, dimensiones:", dim(df_python)[1], "x", dim(df_python)[2], "\\n")
     }}, error = function(e) {{
-        cat("Error al leer el archivo CSV:", e$message, "\\n")
-        cat("Ruta del archivo:", "{input_csv_path_r}", "\\n")
-        stop("No se pudo leer el archivo de entrada")
+        cat("error al leer el archivo csv:", e$message, "\\n")
+        cat("ruta del archivo:", "{input_csv_path_r}", "\\n")
+        stop("no se pudo leer el archivo de entrada")
     }})
 
     columnas_requeridas <- c("PE_TC_PE_Ventas_AG", "PE_TC_PE_MUNICIPIO_AGR2", "PE_TC_PE_ENTIDAD_AGR")
@@ -210,8 +206,6 @@ def ejecutar_modelo_ais(
     tryCatch({{
         cat("Intentando cargar el modelo desde:", "{nombre_modelo_r}", "\\n")
         load("{nombre_modelo_r}")
-
-@@ -181,233 +195,256 @@
         cat("Error al cargar el modelo:", e$message, "\\n")
         stop("No se pudo cargar el modelo")
     }})
