@@ -135,8 +135,169 @@ def ejecutar_modelo_ais(
         }}
     }}
 
-    # Resto del script continúa aquí...
-    # (debes concatenar el resto de tu script actual a partir de aquí)
+    # Debugging - Mostrar directorio de trabajo actual y modelo a cargar
+    cat("Directorio de trabajo:", getwd(), "\\n")
+    cat("Ruta del modelo a cargar:", "{nombre_modelo_r}", "\\n")
+    cat("¿El archivo existe?:", file.exists("{nombre_modelo_r}"), "\\n")
+
+    if (!file.exists("{nombre_modelo_r}")) {{
+        stop(paste0("El archivo del modelo no existe en la ruta: ", "{nombre_modelo_r}"))
+    }}
+
+    tryCatch({{
+        df_python <- read.csv("{input_csv_path_r}")
+        cat("Datos cargados exitosamente, dimensiones:", dim(df_python)[1], "x", dim(df_python)[2], "\\n")
+    }}, error = function(e) {{
+        cat("Error al leer el archivo CSV:", e$message, "\\n")
+        cat("Ruta del archivo:", "{input_csv_path_r}", "\\n")
+        stop("No se pudo leer el archivo de entrada")
+    }})
+
+    columnas_requeridas <- c("PE_TC_PE_Ventas_AG", "PE_TC_PE_MUNICIPIO_AGR2", "PE_TC_PE_ENTIDAD_AGR")
+    columnas_faltantes <- columnas_requeridas[!columnas_requeridas %in% names(df_python)]
+
+    # SECCIÓN CORREGIDA PARA MANEJAR COLUMNAS FALTANTES
+    if (length(columnas_faltantes) > 0) {{
+        cat("Advertencia: Columnas requeridas faltantes:", paste(columnas_faltantes, collapse=", "), "\\n")
+        
+        # Usar un enfoque más seguro para añadir columnas
+        for (col in columnas_faltantes) {{
+            # Usar la función normal 'transform' en lugar de acceso por doble corchete
+            df_python <- transform(df_python, x = NA)
+            names(df_python)[names(df_python) == "x"] <- col
+            cat("Columna creada:", col, "\\n")
+        }}
+    }}
+
+    columnas_dummy <- columnas_requeridas[columnas_requeridas %in% names(df_python)]
+
+    if (length(columnas_dummy) > 0) {{
+        df <- fastDummies::dummy_cols(df_python, 
+                                      select_columns = columnas_dummy,
+                                      remove_selected_columns = TRUE)
+    }} else {{
+        df <- df_python
+    }}
+
+    nombres_dummies <- grep("PE_TC_PE_Ventas_AG_|PE_TC_PE_MUNICIPIO_AGR2_|PE_TC_PE_ENTIDAD_AGR_", names(df), value = TRUE)
+
+    if (length(nombres_dummies) > 0) {{
+        colnames(df)[colnames(df) %in% nombres_dummies] <- gsub("_(?!.*_)", "", colnames(df)[colnames(df) %in% nombres_dummies], perl = TRUE)
+    }}
+
+    tryCatch({{
+        cat("Intentando cargar el modelo desde:", "{nombre_modelo_r}", "\\n")
+        load("{nombre_modelo_r}")
+        cat("Modelo cargado exitosamente\\n")
+    }}, error = function(e) {{
+        cat("Error al cargar el modelo:", e$message, "\\n")
+        stop("No se pudo cargar el modelo")
+    }})
+
+    var.mod.xgboost <- AISMasterModelo$modelo$feature_names
+    cat("Variables del modelo:", length(var.mod.xgboost), "\\n")
+
+    for (var in var.mod.xgboost) {{
+        if (!(var %in% colnames(df))) {{
+            df[[var]] <- NA
+            cat("Variable añadida:", var, "\\n")
+        }}
+    }}
+
+    df <- data.frame(lapply(df, function(x) {{
+        replace(x, is.nan(x) | is.infinite(x), NA)
+    }}))
+
+    tryCatch({{
+        muestra.matrix <- xgboost::xgb.DMatrix(as.matrix(df[, var.mod.xgboost]), missing = NA)
+        preds <- predict(AISMasterModelo$modelo, newdata = muestra.matrix, ntreelimit = AISMasterModelo$modelo$niter, outputmargin = FALSE)
+        cat("Predicciones generadas correctamente\\n")
+    }}, error = function(e) {{
+        cat("Error al generar predicciones:", e$message, "\\n")
+        stop("No se pudieron generar las predicciones")
+    }})
+
+    tryCatch({{
+        contrib <- predict(AISMasterModelo$modelo, newdata = muestra.matrix, ntreelimit = AISMasterModelo$modelo$niter, outputmargin = FALSE, predcontrib = TRUE)
+        contrib <- as.data.frame(contrib)
+        names(contrib) <- paste0("pt_", names(contrib))
+        cat("Contribuciones calculadas correctamente\\n")
+    }}, error = function(e) {{
+        cat("Error al calcular contribuciones, continuando sin ellas:", e$message, "\\n")
+        contrib <- data.frame()
+    }})
+
+    df$preds <- preds
+    if (ncol(contrib) > 0) {{
+        df <- cbind(df, contrib)
+    }}
+
+    tryCatch({{
+        write.csv(df, file = "{resultado_completo_path_r}", row.names = FALSE)
+        cat("El resultado completo se ha guardado en:", "{resultado_completo_path_r}", "\\n")
+    }}, error = function(e) {{
+        cat("Error al guardar el archivo completo:", e$message, "\\n")
+    }})
+
+    # Comprobar existencia de columnas de forma segura
+    has_bimboId <- "bimboId" %in% colnames(df)
+    has_blmId <- "blmId" %in% colnames(df)
+    
+    # SECCIÓN CORREGIDA PARA LA CREACIÓN DEL DATAFRAME FINAL
+    # Usar un enfoque más robusto sin depender del operador pipeline
+    if (has_bimboId && has_blmId) {{
+        tryCatch({{
+            resultado_final <- data.frame(
+                bimboId = df$bimboId,
+                blmId = df$blmId,
+                preds = df$preds
+            )
+            cat("Dataframe final creado con bimboId y blmId\\n")
+        }}, error = function(e) {{
+            cat("Error al crear dataframe con bimboId y blmId:", e$message, "\\n")
+            # Alternativa en caso de error
+            resultado_final <- data.frame(preds = df$preds)
+            if (has_bimboId) resultado_final$bimboId <- df$bimboId
+            if (has_blmId) resultado_final$blmId <- df$blmId
+        }})
+    }} else if (has_bimboId) {{
+        tryCatch({{
+            resultado_final <- data.frame(
+                bimboId = df$bimboId,
+                preds = df$preds
+            )
+            cat("Dataframe final creado con solo bimboId\\n")
+        }}, error = function(e) {{
+            cat("Error al crear dataframe con bimboId:", e$message, "\\n")
+            resultado_final <- data.frame(preds = df$preds)
+            resultado_final$bimboId <- df$bimboId
+        }})
+    }} else if (has_blmId) {{
+        tryCatch({{
+            resultado_final <- data.frame(
+                blmId = df$blmId,
+                preds = df$preds
+            )
+            cat("Dataframe final creado con solo blmId\\n")
+        }}, error = function(e) {{
+            cat("Error al crear dataframe con blmId:", e$message, "\\n")
+            resultado_final <- data.frame(preds = df$preds)
+            resultado_final$blmId <- df$blmId
+        }})
+    }} else {{
+        resultado_final <- data.frame(preds = df$preds)
+        cat("Dataframe final creado solo con predicciones\\n")
+    }}
+    
+    tryCatch({{
+        write.csv(resultado_final, file = "{resultado_final_path_r}", row.names = FALSE)
+        cat("El resultado final se ha guardado en:", "{resultado_final_path_r}", "\\n")
+    }}, error = function(e) {{
+        cat("Error al guardar el archivo de resultados finales:", e$message, "\\n")
+        stop("No se pudo guardar el resultado final")
+    }})
+
+    cat("Ejecución del script R completada con éxito\\n")
     """
     
     # Escribir el script R en un archivo temporal
