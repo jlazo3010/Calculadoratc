@@ -271,43 +271,6 @@ def asignar_desiscion_ADV(Decil):
         return "Aceptado"
 
 ############################## FUNCIONES PARA MODELO RL ###############################
-# Luego, define la clase MultiColumnLabelEncoder
-class MultiColumnLabelEncoder(BaseEstimator, TransformerMixin):
-    def __init__(self, handle_unknown='error'):
-        self.encoders = None
-        self.handle_unknown = handle_unknown
-    
-    def fit(self, X, y=None):
-        self.encoders = [LabelEncoder() for _ in range(X.shape[1])]
-        for i, encoder in enumerate(self.encoders):
-            encoder.fit(X[:, i])
-        return self
-    
-    def transform(self, X):
-        X_encoded = np.zeros_like(X, dtype=int)
-        for i, encoder in enumerate(self.encoders):
-            try:
-                X_encoded[:, i] = encoder.transform(X[:, i])
-            except ValueError:
-                if self.handle_unknown == 'ignore':
-                    X_encoded[:, i] = -1  # Valor para categorías desconocidas
-                else:
-                    raise
-        return X_encoded
-    
-    def fit_transform(self, X, y=None):
-        return self.fit(X, y).transform(X)
-
-# Después, define las transformaciones
-numerical_transformer = Pipeline(steps=[
-    ('imputer', SimpleImputer(strategy='median')),
-    ('scaler', StandardScaler())
-])
-
-categorical_transformer_label = Pipeline(steps=[
-    ('imputer', SimpleImputer(strategy='constant', fill_value='unknown')),
-    ('label', MultiColumnLabelEncoder(handle_unknown='ignore'))
-])
  
 # Función para preprocesar nuevos datos
 def preprocesar_nuevos_datos(datos_nuevos, modelo_cargado):
@@ -347,6 +310,45 @@ def cargar_modelo(ruta_modelo='modelo_regresion_logistica_v2.pkl'):
     """
     Carga el modelo de regresión logística guardado previamente
     """
+    # Luego, define la clase MultiColumnLabelEncoder
+    class MultiColumnLabelEncoder(BaseEstimator, TransformerMixin):
+        def __init__(self, handle_unknown='error'):
+            self.encoders = None
+            self.handle_unknown = handle_unknown
+        
+        def fit(self, X, y=None):
+            self.encoders = [LabelEncoder() for _ in range(X.shape[1])]
+            for i, encoder in enumerate(self.encoders):
+                encoder.fit(X[:, i])
+            return self
+        
+        def transform(self, X):
+            X_encoded = np.zeros_like(X, dtype=int)
+            for i, encoder in enumerate(self.encoders):
+                try:
+                    X_encoded[:, i] = encoder.transform(X[:, i])
+                except ValueError:
+                    if self.handle_unknown == 'ignore':
+                        X_encoded[:, i] = -1  # Valor para categorías desconocidas
+                    else:
+                        raise
+            return X_encoded
+        
+        def fit_transform(self, X, y=None):
+            return self.fit(X, y).transform(X)
+
+    # Después, define las transformaciones
+    numerical_transformer = Pipeline(steps=[
+        ('imputer', SimpleImputer(strategy='median')),
+        ('scaler', StandardScaler())
+    ])
+
+    categorical_transformer_label = Pipeline(steps=[
+        ('imputer', SimpleImputer(strategy='constant', fill_value='unknown')),
+        ('label', MultiColumnLabelEncoder(handle_unknown='ignore'))
+    ])
+
+
     try:
         with open(ruta_modelo, 'rb') as file:
             modelo_cargado = pickle.load(file)
@@ -359,7 +361,7 @@ def cargar_modelo(ruta_modelo='modelo_regresion_logistica_v2.pkl'):
         return None
 
 # Y ahora sí, carga el modelo
-modelo_cargado = cargar_modelo()
+modelo_cargado = cargar_modelo(ruta_modelo='modelo_regresion_logistica_v2.pkl')
 
 
 ############################## FUNCIONES PARA ASIGNACIÓN FINAL DE DECIL ###############################
@@ -779,7 +781,6 @@ else:
                         resultadosAIS = tabla_AIS[tabla_AIS["bimboId"] == BimboID]
                         if not resultadosAIS.empty:
                             st.success("✅ Datos encontrados en AIS")
-                            resultadosAIS
                         else:
                             st.error("No se encontraron datos para ese BimboID.")
 
