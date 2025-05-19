@@ -106,19 +106,22 @@ def ejecutar_modelo_ais(
     .libPaths(c(Sys.getenv("R_LIBS_USER"), .libPaths()))
 
     # Paquetes requeridos
-    packages_needed <- c("Matrix", "xgboost", "dplyr", "fastDummies")
+    packages_needed <- c("Matrix", "xgboost", "dplyr", "fastDummies", "remotes")
     packages_to_install <- packages_needed[!packages_needed %in% installed.packages()[,"Package"]]
 
-    # Instalar paquetes desde CRAN (versión compatible de xgboost)
+    # Instalar paquetes
     if (length(packages_to_install) > 0) {{
         cat("Instalando paquetes necesarios:", paste(packages_to_install, collapse=", "), "\\n")
         for (pkg in packages_to_install) {{
             tryCatch({{
                 if (pkg == "xgboost") {{
-                    cat("Instalando versión compatible de xgboost (1.4.1.1)...\\n")
-                    install.packages("xgboost", repos = "https://cloud.r-project.org", lib = Sys.getenv("R_LIBS_USER"), quiet = TRUE)
+                    cat("Instalando xgboost desde GitHub en versión compatible (release_1.4)...\\n")
+                    if (!require("remotes", quietly = TRUE)) {{
+                        install.packages("remotes", repos = "https://cloud.r-project.org", lib = Sys.getenv("R_LIBS_USER"))
+                    }}
+                    remotes::install_github("dmlc/xgboost@release_1.4", subdir = "R-package", lib = Sys.getenv("R_LIBS_USER"))
                 }} else {{
-                    install.packages(pkg, repos = "https://cloud.r-project.org", lib = Sys.getenv("R_LIBS_USER"), quiet = TRUE)
+                    install.packages(pkg, repos = "https://cloud.r-project.org", lib = Sys.getenv("R_LIBS_USER"))
                 }}
             }}, error = function(e) {{
                 cat("❌ Error al instalar", pkg, ":", e$message, "\\n")
