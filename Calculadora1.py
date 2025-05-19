@@ -319,7 +319,7 @@ def cargar_modelo(ruta_modelo='modelo_regresion_logistica_v2.pkl'):
     return modelo_cargado
 
 # Y ahora sí, carga el modelo
-modelo_cargado = cargar_modelo('modelo_regresion_logistica_v2.pkl')
+modelo_cargado = cargar_modelo()
  
 # Función para preprocesar nuevos datos
 def preprocesar_nuevos_datos(datos_nuevos, modelo_cargado):
