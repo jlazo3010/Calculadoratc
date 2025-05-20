@@ -534,7 +534,7 @@ def oferta_final(min_oferta, max_oferta, oferta_original):
 ################################# Manejo de la limpieza del formulario
 if 'limpiar_formulario' in st.session_state and st.session_state['limpiar_formulario']:
     # Limpieza para TConecta
-    st.session_state['Solicitud'] = ""
+    st.session_state['Solicitud'] = 0
     st.session_state['edad'] = 18
     st.session_state['Oferta'] = 0
     st.session_state['comentarios'] = ""
@@ -557,7 +557,7 @@ if 'limpiar_formulario' in st.session_state and st.session_state['limpiar_formul
     st.session_state["FOTO"] = "No"
 
     # Limpieza para ADV
-    st.session_state['Solicitud_ADV'] = ""
+    st.session_state['Solicitud_ADV'] = 0
     st.session_state['edad_ADV'] = 18
     st.session_state['Oferta_ADV'] = 0
     st.session_state['comentarios_ADV'] = ""
@@ -960,7 +960,7 @@ else:
 
                         # Guardamos la info en el estado de sesión para mostrar después
                         st.session_state['mostrar_resultado'] = True
-                        st.session_state['solicitud_guardada'] = Solicitud
+                        st.session_state['solicitud_guardada'] = str(Solicitud)
                         st.session_state['nombre_guardado'] = nombre
                         st.session_state['blmId_guardado'] = str(blmId)
                         st.session_state['Desicion_guardada'] = str(Desiscion)
@@ -1014,7 +1014,7 @@ else:
         with st.form("form_cliente"):
             col1, col2 = st.columns(2)
             with col1:
-                Solicitud = st.text_input("Solicitud", max_chars=10, key="Solicitud_ADV", value="")
+                Solicitud = st.number_input("Solicitud", min_value=0, max_value=10000000, value=5000, key="Solicitud_ADV", step=1000)
 
                 Edad = st.number_input("Edad", min_value=18, max_value=100, step=1, key="edad_ADV")
 
@@ -1120,7 +1120,7 @@ else:
 
                         nuevo = {
                             'Usuario_registro': str(st.session_state['usuario_actual']),
-                            'Solicitud': Solicitud,
+                            'Solicitud': str(Solicitud),
                             #'nombre': nombre,
                             'genero': genero,
                             'Oferta': Oferta,
@@ -1177,7 +1177,7 @@ else:
 
                         # Guardamos la info en el estado de sesión para mostrar después
                         st.session_state['mostrar_resultado'] = True
-                        st.session_state['solicitud_guardada'] = Solicitud
+                        st.session_state['solicitud_guardada'] = str(Solicitud)
                         st.session_state['blmId_guardado'] = str(blmId)
                         st.session_state['Decil_riesgos'] = Decil_riesgos
                         st.session_state['Desicion_guardada'] = str(Desiscion)
