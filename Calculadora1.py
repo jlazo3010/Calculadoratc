@@ -534,7 +534,7 @@ def oferta_final(min_oferta, max_oferta, oferta_original):
 ################################# Manejo de la limpieza del formulario
 if 'limpiar_formulario' in st.session_state and st.session_state['limpiar_formulario']:
     # Limpieza para TConecta
-    st.session_state['Solicitud'] = 0
+    st.session_state['Solicitud'] = 5000
     st.session_state['edad'] = 18
     st.session_state['Oferta'] = 0
     st.session_state['comentarios'] = ""
