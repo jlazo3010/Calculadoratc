@@ -914,7 +914,6 @@ else:
                                     nombre_muestra=resultadosAIS
                                 )
                                 st.success("✅ Modelo AIS ejecutado correctamente.")
-                                st.dataframe(resultado.iloc[:, 2])  # Asegúrate que tiene al menos 3 columnas
                         
                             except Exception as e:
                                 st.error(f"❌ Error inesperado durante la ejecución del modelo AIS: {e}")
