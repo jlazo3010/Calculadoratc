@@ -707,7 +707,7 @@ else:
         with st.form("form_cliente"):
             col1, col2 = st.columns(2)
             with col1:
-                Solicitud = st.number_input("Solicitud", min_value=5000, max_value=10000000000, key = "Solicitud", step = None)
+                Solicitud = st.number_input("Solicitud", min_value=5000, max_value=10000000000, key = "Solicitud")
 
                 nombre = st.text_input("Nombre completo", max_chars=50, key = "nombre",value="")
                 if nombre and len(nombre) < 3:
