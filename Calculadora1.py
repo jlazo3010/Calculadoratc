@@ -347,9 +347,6 @@ def cargar_modelo(ruta_modelo='modelo_regresion_logistica_v2.pkl'):
     """
     Carga el modelo de regresión logística guardado previamente
     """
-
-    
-
     try:
         with open(ruta_modelo, 'rb') as file:
             modelo_cargado = pickle.load(file)
@@ -362,7 +359,7 @@ def cargar_modelo(ruta_modelo='modelo_regresion_logistica_v2.pkl'):
         return None
 
 # Y ahora sí, carga el modelo
-modelo_cargado = cargar_modelo()
+modelo_cargado = cargar_modelo(ruta_modelo='modelo_regresion_logistica_v2.pkl')
 
 
 ############################## FUNCIONES PARA ASIGNACIÓN FINAL DE DECIL ###############################
