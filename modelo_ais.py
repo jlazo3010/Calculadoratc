@@ -344,7 +344,7 @@ def ejecutar_modelo_ais(
         # Instalar paquetes R necesarios
         r_packages_script = """
         if (!require("Matrix")) install.packages("Matrix", repos = "https://cloud.r-project.org")
-        if (!require("xgboost")) install.packages("xgboost", repos = "https://cloud.r-project.org")
+        if (!require("xgboost")) install.packages("xgboost", repos = "https://cloud.r-project.org", lib = Sys.getenv("R_LIBS_USER"))
         if (!require("dplyr")) install.packages("dplyr", repos = "https://cloud.r-project.org")
         if (!require("fastDummies")) install.packages("fastDummies", repos = "https://cloud.r-project.org")
         """
