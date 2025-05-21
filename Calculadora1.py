@@ -991,18 +991,6 @@ else:
                 else:
                     st.error(f"🔴 Rechazado")
 
-        st.markdown("---")
-        st.subheader("📊 Registros guardados")
-
-        try:
-            base_actual = cargar_base()
-            if not base_actual.empty:
-                st.dataframe(base_actual)
-            else:
-                st.info("No hay registros guardados todavía.")
-        except Exception as e:
-            st.error(f"❌ Error al cargar la base: {e}")
-
         if st.button("Volver al inicio"):
             volver_inicio()
             st.rerun()
@@ -1208,18 +1196,6 @@ else:
                     st.success(f"🟢 Aceptado")
                 else:
                     st.error(f"🔴 Rechazado")
-
-        st.markdown("---")
-        st.subheader("📊 Registros guardados")
-
-        try:
-            base_actual = cargar_base_ADV()
-            if not base_actual.empty:
-                st.dataframe(base_actual)
-            else:
-                st.info("No hay registros guardados todavía.")
-        except Exception as e:
-            st.error(f"❌ Error al cargar la base: {e}")
 
         if st.button("Volver al inicio"):
             volver_inicio()
