@@ -991,6 +991,8 @@ else:
                 else:
                     st.error(f"🔴 Rechazado")
 
+        st.markdown("---")
+
         if st.button("Volver al inicio"):
             volver_inicio()
             st.rerun()
@@ -1196,6 +1198,8 @@ else:
                     st.success(f"🟢 Aceptado")
                 else:
                     st.error(f"🔴 Rechazado")
+
+        st.markdown("---")
 
         if st.button("Volver al inicio"):
             volver_inicio()
