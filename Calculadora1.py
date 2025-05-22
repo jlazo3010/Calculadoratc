@@ -919,14 +919,14 @@ else:
                                 resultado = ejecutar_modelo_ais(
                                     nombre_muestra=resultadosAIS
                                 )
-                                st.success(f"✅ Modelo AIS ejecutado correctamente. Resultado: {float(resultado["preds"]):.2f}")
+                                st.success(f"✅ Modelo AIS ejecutado correctamente. Resultado: {float(resultado['preds'].iloc[0]):.2f}")
                         
                             except Exception as e:
                                 st.error(f"❌ Error inesperado durante la ejecución del modelo AIS: {e}")
                                 st.stop()
                         print("Se corrio bien modelo AIS")
 
-                        a = float(resultado["preds"])
+                        a = float(resultado['preds'].iloc[0])
 
                         Decil_AIS = obtener_decil_AIS(a)
                         print("Se corrio bien decilAIS")
