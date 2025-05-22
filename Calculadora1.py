@@ -925,6 +925,7 @@ else:
                         a = float(resultado.iloc[0, 2])
 
                         Decil_AIS = obtener_decil_AIS(a)
+                        st.success(f"✅ Modelo AIS ejecutado correctamente. Resultado: {float(Decil_AIS):.2f}")
                         print("Se corrio bien decilAIS")
                         datos_nuevos["Probabilidad_AIS"] = a
                         datos_nuevos["Decil_AIS"] = Decil_AIS
