@@ -917,7 +917,7 @@ else:
                                 )
                                 st.success(f"✅ Modelo AIS ejecutado correctamente. Resultado: {float(resultado.iloc[0, 2]):.2f}")
 
-                                st.dataframe(resultado)
+                                st.dataframe(resultado["preds"])
                         
                             except Exception as e:
                                 st.error(f"❌ Error inesperado durante la ejecución del modelo AIS: {e}")
