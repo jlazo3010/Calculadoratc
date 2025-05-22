@@ -1001,23 +1001,9 @@ else:
     elif st.session_state.pestana_activa == "Calculadora ADV":
         st.header("🔸 ADV")
         # Inicializar variables de sesión para evitar KeyError
-        if 'mostrar_resultado' not in st.session_state:
-            st.session_state['mostrar_resultado'] = False
-        if 'solicitud_guardada' not in st.session_state:
-            st.session_state['solicitud_guardada'] = ''
-        if 'blmId_guardado' not in st.session_state:
-            st.session_state['blmId_guardado'] = ''
         if 'Decil_riesgos_guardada' not in st.session_state:
             st.session_state['Decil_riesgos_guardada'] = 0
-        if 'Desicion_guardada' not in st.session_state:
-            st.session_state['Desicion_guardada'] = ''
-        if 'Oferta_guardada' not in st.session_state:
-            st.session_state['Oferta_guardada'] = 0
-        if 'Tasa_guardada' not in st.session_state:
-            st.session_state['Tasa_guardada'] = ''
-        if 'limpiar_formulario' not in st.session_state:
-            st.session_state['limpiar_formulario'] = False
-            
+
         with st.form("form_cliente"):
             col1, col2 = st.columns(2)
             with col1:
