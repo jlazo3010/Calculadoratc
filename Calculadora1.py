@@ -830,9 +830,13 @@ else:
 
             submit_button = st.form_submit_button("Guardar registro")
 
+            df1 = cargar_base()
+
             if submit_button:
                 if not campos_validos:
                     st.warning("⚠️ Por favor, completa todos los campos correctamente antes de enviar.")
+                elif Solicitud in df1['Solicitud'].values:
+                    st.warning("⚠️ Esta solicitud ya existe. Por favor, ingresa un número único.")
                 else:
                     try:
                         df = cargar_base()
@@ -1094,9 +1098,13 @@ else:
 
             submit_button = st.form_submit_button("Guardar registro")
 
+            df2 = cargar_base_ADV()
+
             if submit_button:
                 if not campos_validos:
                     st.warning("⚠️ Por favor, completa todos los campos correctamente antes de enviar.")
+                elif Solicitud in df2['Solicitud'].values:
+                    st.warning("⚠️ Esta solicitud ya existe. Por favor, ingresa un número único.")
                 else:
                     try:
                         df = cargar_base_ADV()
