@@ -915,6 +915,7 @@ else:
                                 resultado = ejecutar_modelo_ais(
                                     nombre_muestra=resultadosAIS
                                 )
+                                resultado
                                 st.success(f"✅ Modelo AIS ejecutado correctamente. Resultado: {float(resultado.iloc[0, 2]):.2f}")
                         
                             except Exception as e:
@@ -925,7 +926,6 @@ else:
                         a = float(resultado.iloc[0, 2])
 
                         Decil_AIS = obtener_decil_AIS(a)
-                        st.success(f"✅ Modelo AIS ejecutado correctamente. Resultado: {float(Decil_AIS):.2f}")
                         print("Se corrio bien decilAIS")
                         datos_nuevos["Probabilidad_AIS"] = a
                         datos_nuevos["Decil_AIS"] = Decil_AIS
