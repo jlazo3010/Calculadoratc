@@ -707,7 +707,7 @@ else:
         with st.form("form_cliente"):
             col1, col2 = st.columns(2)
             with col1:
-                Solicitud = st.number_input("Solicitud", min_value=5000, max_value=10000000, key="Solicitud", step=1000)
+                Solicitud = st.number_input("Solicitud", min_value=5000, max_value=10000000000000, key="Solicitud", step=1000)
 
                 nombre = st.text_input("Nombre completo", max_chars=50, key = "nombre",value="")
                 if nombre and len(nombre) < 3:
@@ -1000,10 +1000,28 @@ else:
     # Calculadora ADV
     elif st.session_state.pestana_activa == "Calculadora ADV":
         st.header("🔸 ADV")
+        # Inicializar variables de sesión para evitar KeyError
+        if 'mostrar_resultado' not in st.session_state:
+            st.session_state['mostrar_resultado'] = False
+        if 'solicitud_guardada' not in st.session_state:
+            st.session_state['solicitud_guardada'] = ''
+        if 'blmId_guardado' not in st.session_state:
+            st.session_state['blmId_guardado'] = ''
+        if 'Decil_riesgos_guardada' not in st.session_state:
+            st.session_state['Decil_riesgos_guardada'] = 0
+        if 'Desicion_guardada' not in st.session_state:
+            st.session_state['Desicion_guardada'] = ''
+        if 'Oferta_guardada' not in st.session_state:
+            st.session_state['Oferta_guardada'] = 0
+        if 'Tasa_guardada' not in st.session_state:
+            st.session_state['Tasa_guardada'] = ''
+        if 'limpiar_formulario' not in st.session_state:
+            st.session_state['limpiar_formulario'] = False
+            
         with st.form("form_cliente"):
             col1, col2 = st.columns(2)
             with col1:
-                Solicitud = st.number_input("Solicitud", min_value=0, max_value=10000000, value=5000, key="Solicitud_ADV", step=1000)
+                Solicitud = st.number_input("Solicitud", min_value=0, max_value=10000000000000, value=5000, key="Solicitud_ADV", step=1000)
 
                 Edad = st.number_input("Edad", min_value=18, max_value=100, step=1, key="edad_ADV")
 
@@ -1168,7 +1186,7 @@ else:
                         st.session_state['mostrar_resultado'] = True
                         st.session_state['solicitud_guardada'] = str(Solicitud)
                         st.session_state['blmId_guardado'] = str(blmId)
-                        st.session_state['Decil_riesgos'] = Decil_riesgos
+                        st.session_state['Decil_riesgos_guardada'] = Decil_riesgos
                         st.session_state['Desicion_guardada'] = str(Desiscion)
                         st.session_state['Oferta_guardada'] = int(Oferta)  # Conversión explícita a entero
                         st.session_state['Tasa_guardada'] = str(Tasa)      # Conversión explícita a string
@@ -1187,7 +1205,7 @@ else:
                 st.markdown(f"""
                 **Solicitud:** {st.session_state['solicitud_guardada']}   
                 **blmId:** {st.session_state['blmId_guardado']}   
-                **Decil:** {st.session_state['Decil_riesgos']}   
+                **Decil:** {st.session_state['Decil_riesgos_guardada']}   
                 **Oferta:** ${int(st.session_state['Oferta_guardada']):,}   
                 **Tasa:** {st.session_state['Tasa_guardada']}   
                 """)
