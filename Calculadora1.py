@@ -835,7 +835,7 @@ else:
             if submit_button:
                 if not campos_validos:
                     st.warning("⚠️ Por favor, completa todos los campos correctamente antes de enviar.")
-                elif Solicitud in df1['Solicitud'].values:
+                elif str(Solicitud) in df1['Solicitud'].values:
                     st.warning("⚠️ Esta solicitud ya existe. Por favor, ingresa un número único.")
                 else:
                     try:
