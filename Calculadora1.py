@@ -534,7 +534,7 @@ def oferta_final(min_oferta, max_oferta, oferta_original):
 ################################# Manejo de la limpieza del formulario
 if 'limpiar_formulario' in st.session_state and st.session_state['limpiar_formulario']:
     # Limpieza para TConecta
-    st.session_state['Solicitud'] = 5000
+    st.session_state['Solicitud'] = 4000
     st.session_state['edad'] = 18
     st.session_state['Oferta'] = 0
     st.session_state['comentarios'] = ""
@@ -707,7 +707,7 @@ else:
         with st.form("form_cliente"):
             col1, col2 = st.columns(2)
             with col1:
-                Solicitud = st.number_input("Solicitud", min_value=5000, max_value=10000000000000, key="Solicitud", step=1000)
+                Solicitud = st.number_input("Solicitud", min_value=4000, max_value=10000000000000, key="Solicitud", step=1000)
 
                 nombre = st.text_input("Nombre completo", max_chars=50, key = "nombre",value="")
                 if nombre and len(nombre) < 3:
@@ -1103,7 +1103,7 @@ else:
             if submit_button:
                 if not campos_validos:
                     st.warning("⚠️ Por favor, completa todos los campos correctamente antes de enviar.")
-                elif Solicitud in df2['Solicitud'].values:
+                elif str(Solicitud) in df2['Solicitud'].values:
                     st.warning("⚠️ Esta solicitud ya existe. Por favor, ingresa un número único.")
                 else:
                     try:
