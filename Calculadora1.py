@@ -897,7 +897,7 @@ else:
 
                         probabilidades = predecir_probabilidades(datos_preprocesados, modelo_cargado)
 
-                        st.success(f"✅ Modelo Interno ejecutado correctamente.")
+                        st.success(f"✅ Modelo Interno ejecutado correctamente. Resultado: {float(probabilidades[0]):.2f}")
 
                         Decil = obtener_decil(probabilidades[0])
 
@@ -915,7 +915,7 @@ else:
                                 resultado = ejecutar_modelo_ais(
                                     nombre_muestra=resultadosAIS
                                 )
-                                st.success(f"✅ Modelo AIS ejecutado correctamente.")
+                                st.success(f"✅ Modelo AIS ejecutado correctamente. Resultado: {float(resultado["preds"]):.2f}")
                         
                             except Exception as e:
                                 st.error(f"❌ Error inesperado durante la ejecución del modelo AIS: {e}")
@@ -933,6 +933,8 @@ else:
                         
                         datos_nuevos["Grupo_nombre"] = grupo_nombre
                         datos_nuevos["Grupo_numero"] = grupo_num
+
+                        st.success(grupo_nombre)
 
                         Desiscion = asignar_desiscion(grupo_num, MicroScore)
 
