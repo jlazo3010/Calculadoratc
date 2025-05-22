@@ -915,7 +915,6 @@ else:
                                 resultado = ejecutar_modelo_ais(
                                     nombre_muestra=resultadosAIS
                                 )
-                                resultado
                                 st.success(f"✅ Modelo AIS ejecutado correctamente. Resultado: {float(resultado.iloc[0, 2]):.2f}")
                         
                             except Exception as e:
