@@ -915,8 +915,9 @@ else:
                                 resultado = ejecutar_modelo_ais(
                                     nombre_muestra=resultadosAIS
                                 )
-                                st.dataframe(resultado)
                                 st.success(f"✅ Modelo AIS ejecutado correctamente. Resultado: {float(resultado.iloc[0, 2]):.2f}")
+
+                                st.dataframe(resultado)
                         
                             except Exception as e:
                                 st.error(f"❌ Error inesperado durante la ejecución del modelo AIS: {e}")
