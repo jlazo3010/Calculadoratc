@@ -69,10 +69,6 @@ def BimboIDbase():
             raise e
     return df
 
-# Cargar la tabla BIMBOID
-tabla_bimbo = BimboIDbase()
-tabla_bimbo["blmId"] = tabla_bimbo["blmId"].astype(str)
-
 def CPbase():
     try:
         response = s3.get_object(Bucket=BUCKET_NAME, Key=CPID)
@@ -84,9 +80,7 @@ def CPbase():
             raise e
     return df
 
-# Cargar la tabla MUNICIPIOS
-tabla_CPID = CPbase()
-tabla_CPID["d_codigo"] = tabla_CPID["d_codigo"].astype(str)
+
 
 def AISbase():
     try:
@@ -99,10 +93,7 @@ def AISbase():
             raise e
     return df
 
-# Cargar la tabla MUNICIPIOS
-tabla_AIS = AISbase()
-tabla_AIS["bimboId"] = tabla_AIS["bimboId"].astype(str)
-tabla_AIS.rename(columns={tabla_AIS.columns[0]: 'PE_TC_PE_MUNICIPIO_C'}, inplace=True)
+
 
 ##Base de usuarios
 def USUARIOS():
@@ -747,6 +738,10 @@ else:
                 Dependientes = st.selectbox("Dependiente", ["0", "1", "2", "3", "4", "5", "+5"],key = "Dependientes")
 
                 CP = st.text_input("Código postal", max_chars=50,key = "CP",value="")
+
+                # Cargar la tabla MUNICIPIOS
+                tabla_CPID = CPbase()
+                tabla_CPID["d_codigo"] = tabla_CPID["d_codigo"].astype(str)
                 resultadosCP = pd.DataFrame()
 
                 if CP:
@@ -769,6 +764,10 @@ else:
                                                             key="tipo_negocio_especificado")
                 
                 BimboID = st.text_input("BimboID", max_chars=15,key = "BimboID",value="")
+                # Cargar la tabla MUNICIPIOS
+                tabla_AIS = AISbase()
+                tabla_AIS["bimboId"] = tabla_AIS["bimboId"].astype(str)
+                tabla_AIS.rename(columns={tabla_AIS.columns[0]: 'PE_TC_PE_MUNICIPIO_C'}, inplace=True)
                 tabla_AIS["bimboId"] = tabla_AIS["bimboId"].astype(str)
                 resultadosAIS = pd.DataFrame()
 
@@ -786,7 +785,10 @@ else:
 
 
                 blmId = st.text_input("blmId", max_chars=15,key = "blmId",value="")
+                # Cargar la tabla BIMBOID
+                tabla_bimbo = BimboIDbase()
                 tabla_bimbo["blmId"] = tabla_bimbo["blmId"].astype(str)
+
                 resultados = pd.DataFrame()
 
                 if blmId:
@@ -1039,6 +1041,9 @@ else:
                 Dependientes = st.selectbox("Dependiente", ["0", "1", "2", "3", "4", "5", "+5"], key="Dependientes_ADV")
 
                 CP = st.text_input("Código postal", max_chars=50, key="CP_ADV", value="")
+                # Cargar la tabla MUNICIPIOS
+                tabla_CPID = CPbase()
+                tabla_CPID["d_codigo"] = tabla_CPID["d_codigo"].astype(str)
                 resultadosCP = pd.DataFrame()
 
                 if CP:
@@ -1059,6 +1064,7 @@ else:
                 BimboID = st.text_input("BimboID", max_chars=15, key="BimboID_ADV", value="")
 
                 blmId = st.text_input("blmId", max_chars=15, key="blmId_ADV", value="")
+                tabla_bimbo = BimboIDbase()
                 tabla_bimbo["blmId"] = tabla_bimbo["blmId"].astype(str)
                 resultados = pd.DataFrame()
 
