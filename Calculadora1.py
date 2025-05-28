@@ -3,8 +3,10 @@ import re
 import pandas as pd
 import boto3
 import io
+import requests
 import numpy as np
 import os
+import requests
 from dotenv import load_dotenv
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
@@ -30,89 +32,73 @@ import math
 import pickle 
 import json
 
-'''# ---------------- CONFIGURACIÓN ----------------
+# ---------------- CONFIGURACIÓN ----------------
 
-AWS_ACCESS_KEY = os.environ['AWS_ACCESS_KEY_ID']
-AWS_SECRET_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
-BUCKET_NAME = os.environ['S3_BUCKET']
-ARCHIVO_S3 = 'tconetcacalculadora.csv'
+GITHUB_RAW_URL = "https://raw.githubusercontent.com/jlazo3010/Calculadoratc/refs/heads/main/"  # Ajusta esto con tu usuario/repositorio
+
 BASEID = 'Base_martin.csv'
 CPID = 'CPID.csv'
-AIS = 'base_AIS.csv'
+AIS = 'base_AIS.parquet'  # Recomendado usar parquet si el archivo es grande
 ADV = 'ADVcalculadora.csv'
 USU = 'Usuarios.csv'
 
-# Verificar que las variables se cargaron correctamente
-if not all([AWS_ACCESS_KEY, AWS_SECRET_KEY, BUCKET_NAME]):
-    print("⚠️ Las variables de entorno no se cargaron correctamente.")
-else:
-    print("✅ Las variables de entorno se cargaron correctamente.")
-
-# Carga del cliente S3
-s3 = boto3.client('s3',
-    aws_access_key_id=AWS_ACCESS_KEY,
-    aws_secret_access_key=AWS_SECRET_KEY
-)'''
+print("✅ Configuración cargada para lectura desde GitHub.")
 
 # ---------------- FUNCIONES ----------------
 
 def BimboIDbase():
+    url = GITHUB_RAW_URL + BASEID
     try:
-        response = s3.get_object(Bucket=BUCKET_NAME, Key=BASEID)
-        df = pd.read_csv(io.BytesIO(response['Body'].read()), dtype={'blmId': str})
-    except s3.exceptions.ClientError as e:
-        if e.response['Error']['Code'] == 'NoSuchKey':
-            df = pd.DataFrame(columns=['blmId', 'Morosidad_Promedio', 'Gradient Boosting_Proba',
-                                       'Decil_ventas','PromedioVisitasXMesBimbo','ventaPromedioSemanalUlt12Semanas',
-                                       'Giro_de_Cliente','MontoMinCredito','DiasConCreditoVigente'])
-        else:
-            raise e
+        df = pd.read_csv(url, dtype={'blmId': str})
+    except Exception:
+        df = pd.DataFrame(columns=['blmId', 'Morosidad_Promedio', 'Gradient Boosting_Proba',
+                                   'Decil_ventas','PromedioVisitasXMesBimbo','ventaPromedioSemanalUlt12Semanas',
+                                   'Giro_de_Cliente','MontoMinCredito','DiasConCreditoVigente'])
     return df
+
+tabla_bimbo = BimboIDbase()
+tabla_bimbo["blmId"] = tabla_bimbo["blmId"].astype(str)
 
 def CPbase():
+    url = GITHUB_RAW_URL + CPID
     try:
-        response = s3.get_object(Bucket=BUCKET_NAME, Key=CPID)
-        df = pd.read_csv(io.BytesIO(response['Body'].read()), dtype={'d_codigo': str})
-    except s3.exceptions.ClientError as e:
-        if e.response['Error']['Code'] == 'NoSuchKey':
-            df = pd.DataFrame(columns=['d_codigo', 'd_asenta', 'd_tipo_asenta', 'D_mnpio', 'd_estado','d_zona'])
-        else:
-            raise e
+        df = pd.read_csv(url, dtype={'d_codigo': str})
+    except Exception:
+        df = pd.DataFrame(columns=['d_codigo', 'd_asenta', 'd_tipo_asenta', 'D_mnpio', 'd_estado','d_zona'])
     return df
 
-
+tabla_CPID = CPbase()
+tabla_CPID["d_codigo"] = tabla_CPID["d_codigo"].astype(str)
 
 def AISbase():
+    url = GITHUB_RAW_URL + AIS
     try:
-        response = s3.get_object(Bucket=BUCKET_NAME, Key=AIS)
-        df = pd.read_csv(io.BytesIO(response['Body'].read()), dtype={'bimboId': str}, encoding='latin1')
-    except s3.exceptions.ClientError as e:
-        if e.response['Error']['Code'] == 'NoSuchKey':
-            df = pd.DataFrame(columns=[])
-        else:
-            raise e
+        response = requests.get(url)
+        response.raise_for_status()  # Lanza error si la respuesta es mala
+        df = pd.read_parquet(io.BytesIO(response.content))
+        df["bimboId"] = df["bimboId"].astype(str)
+    except Exception as e:
+        print(f"⚠️ Error cargando base_AIS.parquet: {e}")
+        df = pd.DataFrame(columns=[])
     return df
 
+tabla_AIS = AISbase()
+if not tabla_AIS.empty:
+    tabla_AIS.rename(columns={tabla_AIS.columns[0]: 'PE_TC_PE_MUNICIPIO_C'}, inplace=True)
 
-
-##Base de usuarios
 def USUARIOS():
+    url = GITHUB_RAW_URL + USU
     try:
-        response = s3.get_object(Bucket=BUCKET_NAME, Key=USU)
-        df = pd.read_csv(io.BytesIO(response['Body'].read()), dtype={'Usuario': str, 'Pass' : str})
-    except s3.exceptions.ClientError as e:
-        if e.response['Error']['Code'] == 'NoSuchKey':
-            df = pd.DataFrame(columns=[])
-        else:
-            raise e
+        df = pd.read_csv(url, dtype={'Usuario': str, 'Pass' : str})
+    except Exception:
+        df = pd.DataFrame(columns=['Usuario', 'Pass'])
     return df
 
-# Cargar la tabla MUNICIPIOS
 tabla_USU = USUARIOS()
 tabla_USU["Usuario"] = tabla_USU["Usuario"].astype(str)
 tabla_USU["Pass"] = tabla_USU["Pass"].astype(str)
 
-
+## Se cargara hasta que se tenga el S3 de FC
 def cargar_base():
     try:
         response = s3.get_object(Bucket=BUCKET_NAME, Key=ARCHIVO_S3)
@@ -738,10 +724,6 @@ else:
                 Dependientes = st.selectbox("Dependiente", ["0", "1", "2", "3", "4", "5", "+5"],key = "Dependientes")
 
                 CP = st.text_input("Código postal", max_chars=50,key = "CP",value="")
-
-                # Cargar la tabla MUNICIPIOS
-                tabla_CPID = CPbase()
-                tabla_CPID["d_codigo"] = tabla_CPID["d_codigo"].astype(str)
                 resultadosCP = pd.DataFrame()
 
                 if CP:
@@ -764,10 +746,6 @@ else:
                                                             key="tipo_negocio_especificado")
                 
                 BimboID = st.text_input("BimboID", max_chars=15,key = "BimboID",value="")
-                # Cargar la tabla MUNICIPIOS
-                tabla_AIS = AISbase()
-                tabla_AIS["bimboId"] = tabla_AIS["bimboId"].astype(str)
-                tabla_AIS.rename(columns={tabla_AIS.columns[0]: 'PE_TC_PE_MUNICIPIO_C'}, inplace=True)
                 tabla_AIS["bimboId"] = tabla_AIS["bimboId"].astype(str)
                 resultadosAIS = pd.DataFrame()
 
@@ -785,10 +763,7 @@ else:
 
 
                 blmId = st.text_input("blmId", max_chars=15,key = "blmId",value="")
-                # Cargar la tabla BIMBOID
-                tabla_bimbo = BimboIDbase()
                 tabla_bimbo["blmId"] = tabla_bimbo["blmId"].astype(str)
-
                 resultados = pd.DataFrame()
 
                 if blmId:
@@ -1041,9 +1016,6 @@ else:
                 Dependientes = st.selectbox("Dependiente", ["0", "1", "2", "3", "4", "5", "+5"], key="Dependientes_ADV")
 
                 CP = st.text_input("Código postal", max_chars=50, key="CP_ADV", value="")
-                # Cargar la tabla MUNICIPIOS
-                tabla_CPID = CPbase()
-                tabla_CPID["d_codigo"] = tabla_CPID["d_codigo"].astype(str)
                 resultadosCP = pd.DataFrame()
 
                 if CP:
@@ -1064,7 +1036,6 @@ else:
                 BimboID = st.text_input("BimboID", max_chars=15, key="BimboID_ADV", value="")
 
                 blmId = st.text_input("blmId", max_chars=15, key="blmId_ADV", value="")
-                tabla_bimbo = BimboIDbase()
                 tabla_bimbo["blmId"] = tabla_bimbo["blmId"].astype(str)
                 resultados = pd.DataFrame()
 
