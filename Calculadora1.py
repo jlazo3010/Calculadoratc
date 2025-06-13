@@ -777,7 +777,13 @@ else:
                                                             key="tipo_negocio_especificado")
                 
                 BimboID = st.text_input("BimboID", max_chars=15,key = "BimboID",value="")
-                tabla_AIS["bimboId"] = tabla_AIS["bimboId"].astype(str)
+                tabla_AIS["bimboId"] = tabla_AIS["bimboId"].astype(str).str.strip()
+
+                # Para filtrar, también limpia el input
+                if BimboID:
+                    BimboID_clean = str(BimboID).strip()
+                    filtro = tabla_AIS[tabla_AIS["bimboId"] == BimboID_clean]
+                    st.write(f"Registros encontrados: {len(filtro)}")
                 resultadosAIS = pd.DataFrame()
 
                 if BimboID:
