@@ -992,7 +992,7 @@ else:
                 **Nombre:**  {st.session_state['nombre_guardado']}  
                 **blmId:** {st.session_state['blmId_guardado']}   
                 **Oferta:** ${int(st.session_state.get('Oferta_input', '0')):,.0f}  
-                **Oferta sugerida:** ${st.session_state.get('Oferta_final', 0):,.0f}   
+                **Oferta sugerida:** ${st.session_state.get('Oferta_final', 0):,.0f}
                 """)
                 
                 # Mostrar interpretación visual de la probabilidad
