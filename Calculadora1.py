@@ -112,6 +112,10 @@ def AISbase():
         
     return df
 
+tabla_AIS = AISbase()
+if not tabla_AIS.empty:
+    tabla_AIS.rename(columns={tabla_AIS.columns[0]: 'PE_TC_PE_MUNICIPIO_C'}, inplace=True)
+
 def USUARIOS():
     url = GITHUB_RAW_URL + USU
     try:
