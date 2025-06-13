@@ -56,7 +56,7 @@ GITHUB_RAW_URL = "https://raw.githubusercontent.com/jlazo3010/Calculadoratc/refs
 
 BASEID = 'Base_martin.csv'
 CPID = 'CPID.csv'
-AIS = 'base_AIS.parquet'  # Recomendado usar parquet si el archivo es grande
+AIS = 'https://github.com/jlazo3010/Calculadoratc/blob/main/base_AIS.parquet'  # Recomendado usar parquet si el archivo es grande
 USU = 'Usuarios.csv'
 
 print("✅ Configuración cargada para lectura desde GitHub.")
@@ -88,7 +88,7 @@ tabla_CPID = CPbase()
 tabla_CPID["d_codigo"] = tabla_CPID["d_codigo"].astype(str)
 
 def AISbase():
-    url = GITHUB_RAW_URL + AIS
+    url = AIS
     print(f"🔍 Intentando cargar desde: {url}")
     
     try:
