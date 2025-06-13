@@ -32,6 +32,24 @@ import math
 import pickle 
 import json
 
+
+AWS_ACCESS_KEY = os.environ['AWS_ACCESS_KEY_ID']
+AWS_SECRET_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
+BUCKET_NAME = os.environ['S3_BUCKET']
+ARCHIVO_S3 = "tconetcacalculadora.csv"
+ADV = 'ADVcalculadora.csv'
+
+# Verificar que las variables se cargaron correctamente
+if not all([AWS_ACCESS_KEY, AWS_SECRET_KEY, BUCKET_NAME]):
+    print("⚠️ Las variables de entorno no se cargaron correctamente.")
+else:
+    print("✅ Las variables de entorno se cargaron correctamente.")
+
+# Carga del cliente S3
+s3 = boto3.client('s3',
+    aws_access_key_id=AWS_ACCESS_KEY,
+    aws_secret_access_key=AWS_SECRET_KEY
+)
 # ---------------- CONFIGURACIÓN ----------------
 
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/jlazo3010/Calculadoratc/refs/heads/main/"  # Ajusta esto con tu usuario/repositorio
@@ -39,7 +57,6 @@ GITHUB_RAW_URL = "https://raw.githubusercontent.com/jlazo3010/Calculadoratc/refs
 BASEID = 'Base_martin.csv'
 CPID = 'CPID.csv'
 AIS = 'base_AIS.parquet'  # Recomendado usar parquet si el archivo es grande
-ADV = 'ADVcalculadora.csv'
 USU = 'Usuarios.csv'
 
 print("✅ Configuración cargada para lectura desde GitHub.")
