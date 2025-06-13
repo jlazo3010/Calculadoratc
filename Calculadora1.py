@@ -1204,14 +1204,14 @@ else:
         if 'mostrar_resultado' in st.session_state and st.session_state['mostrar_resultado']:
             with st.container():
                 st.markdown("### Resultado de la Solicitud")
-                st.markdown(f"""
-                **Solicitud:** {st.session_state['solicitud_guardada']}   
-                **blmId:** {st.session_state['blmId_guardado']}   
-                **Decil:** {st.session_state['Decil_riesgos_guardada']} 
-                **Oferta:** ${int(st.session_state['Oferta_input']):,}  
-                **Oferta sugerida:** ${int(st.session_state['Oferta_guardada']):,}   
-                **Tasa:** {st.session_state['Tasa_guardada']}   
-                """)
+                
+                # Usar st.write en lugar de st.markdown para el contenido
+                st.write("**Solicitud:**", st.session_state.get('solicitud_guardada', 'N/A'))
+                st.write("**Nombre:**", st.session_state.get('nombre_guardado', 'N/A'))
+                st.write("**blmId:**", st.session_state.get('blmId_guardado', 'N/A'))
+                st.write("**Tasa:**", st.session_state.get('Tasa_guardada', 'N/A'))
+                st.write("**Oferta:**", f"${int(st.session_state.get('Oferta_input', '0')):,.0f}")
+                st.write("**Oferta sugerida:**", f"${st.session_state.get('Oferta_guardada', 0):,.0f}")
                 
                 # Mostrar interpretación visual de la probabilidad
                 Desicion_value = st.session_state['Desicion_guardada']
