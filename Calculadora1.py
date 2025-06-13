@@ -113,6 +113,7 @@ def AISbase():
     return df
 
 tabla_AIS = AISbase()
+tabla_AIS["bimboId"] = tabla_AIS["bimboId"].astype(str)
 if not tabla_AIS.empty:
     tabla_AIS.rename(columns={tabla_AIS.columns[0]: 'PE_TC_PE_MUNICIPIO_C'}, inplace=True)
 
