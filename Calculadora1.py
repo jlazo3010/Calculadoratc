@@ -88,31 +88,25 @@ tabla_CPID = CPbase()
 tabla_CPID["d_codigo"] = tabla_CPID["d_codigo"].astype(str)
 
 def AISbase():
-    url = AIS
+    # URL corregida con el nombre exacto del archivo
+    url = "https://raw.githubusercontent.com/jlazo3010/Calculadoratc/main/Base_AIS.parquet"
     print(f"🔍 Intentando cargar desde: {url}")
     
     try:
         response = requests.get(url, timeout=30)
         response.raise_for_status()
-        
-        # Verificar que el contenido no esté vacío
-        if len(response.content) == 0:
-            raise ValueError("El archivo está vacío")
-            
         df = pd.read_parquet(io.BytesIO(response.content))
-        df["bimboId"] = df["bimboId"].astype(str)
+        df["bimboId"] = df["bimboId"].astype(str).str.strip()
         print(f"✅ Archivo cargado exitosamente. Forma: {df.shape}")
+        return df
         
-    except requests.exceptions.RequestException as e:
-        print(f"⚠️ Error de conexión cargando base_AIS.parquet: {e}")
-        df = pd.DataFrame(columns=["bimboId"])  # Crear DataFrame con columnas esperadas
     except Exception as e:
-        print(f"⚠️ Error procesando base_AIS.parquet: {e}")
-        df = pd.DataFrame(columns=["bimboId"])
-        
-    return df
+        print(f"⚠️ Error cargando Base_AIS.parquet: {e}")
+        return pd.DataFrame(columns=["bimboId"])
 
+# Recargar la tabla con la URL correcta
 tabla_AIS = AISbase()
+
 tabla_AIS["bimboId"] = tabla_AIS["bimboId"].astype(str)
 if not tabla_AIS.empty:
     tabla_AIS.rename(columns={tabla_AIS.columns[0]: 'PE_TC_PE_MUNICIPIO_C'}, inplace=True)
