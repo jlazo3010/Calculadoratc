@@ -771,21 +771,7 @@ else:
                                                             key="tipo_negocio_especificado")
                 
                 BimboID = st.text_input("BimboID", max_chars=15,key = "BimboID",value="")
-                if BimboID:
-                    # Debug: mostrar información
-                    st.write("=== DEBUG ===")
-                    st.write(f"Input ingresado: '{BimboID}' (tipo: {type(BimboID)})")
-                    st.write(f"Primeros IDs en tabla: {tabla_AIS['bimboId'].head().tolist()}")
-                    st.write(f"Tipos en tabla: {[type(x) for x in tabla_AIS['bimboId'].head()]}")
-                    
-                    # Verificar si existe exactamente
-                    existe = tabla_AIS["bimboId"].eq(BimboID).any()
-                    st.write(f"¿Existe coincidencia exacta? {existe}")
-                    
-                    # Mostrar coincidencias parciales
-                    parciales = tabla_AIS[tabla_AIS["bimboId"].str.contains(BimboID, na=False)]
-                    st.write(f"Coincidencias parciales: {len(parciales)}")
-                resultadosAIS = pd.DataFrame()
+                tabla_AIS["bimboId"] = tabla_AIS["bimboId"].astype(str)
 
                 if BimboID:
                     if len(BimboID) < 3:
