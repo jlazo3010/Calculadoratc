@@ -972,7 +972,7 @@ else:
                         st.session_state['nombre_guardado'] = nombre
                         st.session_state['blmId_guardado'] = str(blmId)
                         st.session_state['Desicion_guardada'] = str(Desiscion)
-                        st.session_state['Oferta_input'] = Oferta
+                        st.session_state['Oferta_input'] = str(Oferta)
                         st.session_state['Oferta_final'] = Oferta_real
                         
                         # Agregar bandera para indicar que se debe limpiar el formulario
@@ -991,7 +991,7 @@ else:
                 **Solicitud:** {st.session_state['solicitud_guardada']}  
                 **Nombre:**  {st.session_state['nombre_guardado']}  
                 **blmId:** {st.session_state['blmId_guardado']} 
-                **Oferta:** ${st.session_state['Oferta_input']:,.0f}  
+                **Oferta:** ${int(st.session_state['Oferta_input']):,.0f}  
                 **Oferta sugerida:** ${st.session_state['Oferta_final']:,.0f}
                 """)
                 
