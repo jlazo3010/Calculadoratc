@@ -1208,7 +1208,7 @@ else:
         # Mostrar el contenedor con el resultado si existe
         if 'mostrar_resultado' in st.session_state and st.session_state['mostrar_resultado']:
             with st.container():
-                st.markdown("### Resultado de la Solicitud", layout="center")
+                st.markdown("### Resultado de la Solicitud")
                 
                 # Usar st.write en lugar de st.markdown para el contenido
                 st.write("**Solicitud:**", st.session_state.get('solicitud_guardada', 'N/A'))
