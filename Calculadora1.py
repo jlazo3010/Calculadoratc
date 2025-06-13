@@ -990,7 +990,7 @@ else:
                 st.markdown(f"""
                 **Solicitud:** {st.session_state['solicitud_guardada']}  
                 **Nombre:**  {st.session_state['nombre_guardado']}  
-                **blmId:** {st.session_state['blmId_guardado']} 
+                **blmId:** {st.session_state['blmId_guardado']}   
                 **Oferta:** ${int(st.session_state['Oferta_input']):,.0f}  
                 **Oferta sugerida:** ${st.session_state['Oferta_final']:,.0f}
                 """)
