@@ -994,6 +994,11 @@ else:
                 st.write("**blmId:**", st.session_state.get('blmId_guardado', 'N/A'))
                 st.write("**Oferta:**", f"${int(st.session_state.get('Oferta_input', '0')):,.0f}")
                 st.write("**Oferta sugerida:**", f"${st.session_state.get('Oferta_final', 0):,.0f}")
+
+                # Agregar validación para grupos 7 y 8
+                grupo_num_value = st.session_state.get('Grupo_numero', None)
+                if grupo_num_value in [7, 8]:
+                    st.warning("⚠️ Revisar el reporte de historial crediticio")
                 
                 # Mostrar interpretación visual de la probabilidad
                 Desicion_value = st.session_state['Desicion_guardada']
@@ -1001,7 +1006,7 @@ else:
                     st.success(f"🟢 Aceptado")
                 else:
                     st.error(f"🔴 Rechazado")
-
+                
         st.markdown("---")
 
         if st.button("Volver al inicio"):
@@ -1203,7 +1208,7 @@ else:
         # Mostrar el contenedor con el resultado si existe
         if 'mostrar_resultado' in st.session_state and st.session_state['mostrar_resultado']:
             with st.container():
-                st.markdown("### Resultado de la Solicitud")
+                st.markdown("### Resultado de la Solicitud", layout="center")
                 
                 # Usar st.write en lugar de st.markdown para el contenido
                 st.write("**Solicitud:**", st.session_state.get('solicitud_guardada', 'N/A'))
