@@ -66,7 +66,8 @@ print("✅ Configuración cargada para lectura desde GitHub.")
 def BimboIDbase():
     url = GITHUB_RAW_URL + BASEID
     try:
-        df = pd.read_csv(url, dtype={'blmId': str})
+        df = pd.read_parquet(url, engine='pyarrow')
+        df["blmId"] = df["blmId"].astype(str)
     except Exception:
         df = pd.DataFrame(columns=['blmId', 'Morosidad_Promedio', 'Gradient Boosting_Proba',
                                    'Decil_ventas','PromedioVisitasXMesBimbo','ventaPromedioSemanalUlt12Semanas',
