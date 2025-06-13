@@ -1216,7 +1216,6 @@ else:
                 st.write("**blmId:**", st.session_state.get('blmId_guardado', 'N/A'))
                 st.write("**Tasa:**", st.session_state.get('Tasa_guardada', 'N/A'))
                 st.write("**Oferta:**", f"${int(st.session_state.get('Oferta_input', '0')):,.0f}")
-                st.write("**Oferta sugerida:**", f"${st.session_state.get('Oferta_guardada', 0):,.0f}")
                 
                 # Mostrar interpretación visual de la probabilidad
                 Desicion_value = st.session_state['Desicion_guardada']
