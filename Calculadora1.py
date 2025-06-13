@@ -66,8 +66,7 @@ print("✅ Configuración cargada para lectura desde GitHub.")
 def BimboIDbase():
     url = GITHUB_RAW_URL + BASEID
     try:
-        df = pd.read_parquet(url, engine='pyarrow')
-        df["blmId"] = df["blmId"].astype(str)
+        df = pd.read_csv(url, dtype={'blmId': str})
     except Exception:
         df = pd.DataFrame(columns=['blmId', 'Morosidad_Promedio', 'Gradient Boosting_Proba',
                                    'Decil_ventas','PromedioVisitasXMesBimbo','ventaPromedioSemanalUlt12Semanas',
@@ -90,19 +89,28 @@ tabla_CPID["d_codigo"] = tabla_CPID["d_codigo"].astype(str)
 
 def AISbase():
     url = GITHUB_RAW_URL + AIS
+    print(f"🔍 Intentando cargar desde: {url}")
+    
     try:
-        response = requests.get(url)
-        response.raise_for_status()  # Lanza error si la respuesta es mala
+        response = requests.get(url, timeout=30)
+        response.raise_for_status()
+        
+        # Verificar que el contenido no esté vacío
+        if len(response.content) == 0:
+            raise ValueError("El archivo está vacío")
+            
         df = pd.read_parquet(io.BytesIO(response.content))
         df["bimboId"] = df["bimboId"].astype(str)
+        print(f"✅ Archivo cargado exitosamente. Forma: {df.shape}")
+        
+    except requests.exceptions.RequestException as e:
+        print(f"⚠️ Error de conexión cargando base_AIS.parquet: {e}")
+        df = pd.DataFrame(columns=["bimboId"])  # Crear DataFrame con columnas esperadas
     except Exception as e:
-        print(f"⚠️ Error cargando base_AIS.parquet: {e}")
-        df = pd.DataFrame(columns=[])
+        print(f"⚠️ Error procesando base_AIS.parquet: {e}")
+        df = pd.DataFrame(columns=["bimboId"])
+        
     return df
-
-tabla_AIS = AISbase()
-if not tabla_AIS.empty:
-    tabla_AIS.rename(columns={tabla_AIS.columns[0]: 'PE_TC_PE_MUNICIPIO_C'}, inplace=True)
 
 def USUARIOS():
     url = GITHUB_RAW_URL + USU
