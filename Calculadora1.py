@@ -972,7 +972,6 @@ else:
                         st.session_state['nombre_guardado'] = nombre
                         st.session_state['blmId_guardado'] = str(blmId)
                         st.session_state['Desicion_guardada'] = str(Desiscion)
-                        st.session_state['Oferta_input'] = str(Oferta)
                         st.session_state['Oferta_final'] = Oferta_real
                         
                         # Agregar bandera para indicar que se debe limpiar el formulario
@@ -991,8 +990,7 @@ else:
                 **Solicitud:** {st.session_state['solicitud_guardada']}  
                 **Nombre:**  {st.session_state['nombre_guardado']}  
                 **blmId:** {st.session_state['blmId_guardado']}   
-                **Oferta:** ${int(st.session_state['Oferta_input']):,.0f}  
-                **Oferta sugerida:** ${st.session_state['Oferta_final']:,.0f}
+                **Oferta:** ${st.session_state['Oferta_final']:,.0f}
                 """)
                 
                 # Mostrar interpretación visual de la probabilidad
@@ -1189,7 +1187,6 @@ else:
                         st.session_state['blmId_guardado'] = str(blmId)
                         st.session_state['Decil_riesgos_guardada'] = Decil_riesgos
                         st.session_state['Desicion_guardada'] = str(Desiscion)
-                        st.session_state['Oferta_input'] = Oferta
                         st.session_state['Oferta_guardada'] = int(Oferta)  # Conversión explícita a entero
                         st.session_state['Tasa_guardada'] = str(Tasa)      # Conversión explícita a string
                         # Agregar bandera para indicar que se debe limpiar el formulario
@@ -1207,9 +1204,8 @@ else:
                 st.markdown(f"""
                 **Solicitud:** {st.session_state['solicitud_guardada']}   
                 **blmId:** {st.session_state['blmId_guardado']}   
-                **Decil:** {st.session_state['Decil_riesgos_guardada']} 
-                **Oferta:** ${int(st.session_state['Oferta_input']):,}  
-                **Oferta sugerida:** ${int(st.session_state['Oferta_guardada']):,}   
+                **Decil:** {st.session_state['Decil_riesgos_guardada']}   
+                **Oferta:** ${int(st.session_state['Oferta_guardada']):,}   
                 **Tasa:** {st.session_state['Tasa_guardada']}   
                 """)
                 
