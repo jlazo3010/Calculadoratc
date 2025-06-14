@@ -509,14 +509,14 @@ def calificar_credito(prob_rl, prob_xgb, deciles_rl, deciles_xgb):
 
 def montos_grupo(numerodegrupo, Desiscion):
     rangos = [
-        (1, 37500, 50271),
-        (2, 28066, 37499),
-        (3, 19585, 28065),
-        (4, 13818, 19584),
-        (5, 10482, 13817),
-        (6, 4000, 10482),
-        (7, 23667, 45939),
-        (8, 10816, 23883)
+        (1, 37500, 50300),
+        (2, 28100, 37500),
+        (3, 19600, 28100),
+        (4, 13900, 19600),
+        (5, 10500, 13900),
+        (6, 4000, 10500),
+        (7, 23700, 46000),
+        (8, 10900, 24000)
     ]
 
     if Desiscion == "Aceptado":
@@ -939,8 +939,6 @@ else:
                         datos_nuevos["Grupo_nombre"] = grupo_nombre
                         datos_nuevos["Grupo_numero"] = grupo_num
 
-                        st.success(grupo_nombre)
-
                         Desiscion = asignar_desiscion(grupo_num, MicroScore)
 
                         datos_nuevos['Desiscion'] = Desiscion
@@ -961,7 +959,6 @@ else:
 
                         print("Se asigno bien desicion y la oferta real")
                     
-
                         df = pd.concat([df, datos_nuevos], ignore_index=True)
                         guardar_base(df)
                         st.success("✅ Registro guardado correctamente en AWS_S3.")
