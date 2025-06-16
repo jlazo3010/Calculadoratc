@@ -893,7 +893,8 @@ else:
                             'Validacion_spei' : valido_spei,
                             'Validacion_foto' : valido_foto,
                             'Comentarios' : Comentarios,
-                            'Llamada' : llamada
+                            'Llamada' : llamada,
+                            'Fecha_registro': pd.Timestamp.now()
                         }
 
                         datos_nuevos = pd.DataFrame([nuevo])
@@ -1165,7 +1166,8 @@ else:
                             'Validacion_spei' : valido_spei,
                             'Validacion_foto' : valido_foto,
                             'Comentarios' : Comentarios,
-                            'Llamada' : llamada
+                            'Llamada' : llamada,
+                            'Fecha_registro': pd.Timestamp.now()
                         }
 
                         datos_nuevos = pd.DataFrame([nuevo])
