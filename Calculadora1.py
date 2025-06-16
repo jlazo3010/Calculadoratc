@@ -536,22 +536,51 @@ def oferta_final(min_oferta, max_oferta, oferta_original):
 ################################# Manejo de la limpieza del formulario
 if 'limpiar_formulario' in st.session_state and st.session_state['limpiar_formulario']:
     # Limpieza para TConecta
-    for key in ['Solicitud', 'edad', 'Oferta', 'comentarios', 'LLAMADA', 'CP', 
-                'genero', 'Dependientes', 'Edo_civil', 'Tipo_negocio', 
-                'tipo_negocio_especificado', 'BimboID', 'blmId', 'InfoCre', 
-                'MicroScore', 'ScoreFico', 'INE', 'Domicilio', 'CURP', 'SPEI', 'FOTO']:
-        if key in st.session_state:
-            del st.session_state[key]
-    
-    # Limpieza para ADV (similar)
-    for key in ['Solicitud_ADV', 'edad_ADV', 'Oferta_ADV', 'comentarios_ADV', 
-                'LLAMADA_ADV', 'CP_ADV', 'genero_ADV', 'Dependientes_ADV', 
-                'Edo_civil_ADV', 'Tipo_negocio_ADV', 'tipo_negocio_especificado_ADV', 
-                'BimboID_ADV', 'blmId_ADV', 'InfoCre_ADV', 'MicroScore_ADV', 
-                'ScoreFico_ADV', 'INE_ADV', 'Domicilio_ADV', 'CURP_ADV', 'SPEI_ADV', 'FOTO_ADV']:
-        if key in st.session_state:
-            del st.session_state[key]
-    
+    st.session_state['Solicitud'] = 4000
+    st.session_state['edad'] = 18
+    st.session_state['Oferta'] = 0
+    st.session_state['comentarios'] = ""
+    st.session_state['LLAMADA'] = "No"
+    st.session_state['CP'] = ""
+    st.session_state['genero'] = "Masculino"
+    st.session_state['Dependientes'] = "0"
+    st.session_state['Edo_civil'] = "Casado"
+    st.session_state['Tipo_negocio'] = "ABARROTES"
+    st.session_state['tipo_negocio_especificado'] = ""
+    st.session_state['BimboID'] = ""
+    st.session_state['blmId'] = ""
+    st.session_state['InfoCre'] = "Si"
+    st.session_state['MicroScore'] = 0
+    st.session_state['ScoreFico'] = 0
+    st.session_state["INE"] = False
+    st.session_state["Domicilio"] = False
+    st.session_state["CURP"] = False
+    st.session_state["SPEI"] = False
+    st.session_state["FOTO"] = "No"
+
+    # Limpieza para ADV
+    st.session_state['Solicitud_ADV'] = 0
+    st.session_state['edad_ADV'] = 18
+    st.session_state['Oferta_ADV'] = 0
+    st.session_state['comentarios_ADV'] = ""
+    st.session_state['LLAMADA_ADV'] = "No"
+    st.session_state['CP_ADV'] = ""
+    st.session_state['genero_ADV'] = "Masculino"
+    st.session_state['Dependientes_ADV'] = "0"
+    st.session_state['Edo_civil_ADV'] = "Casado"
+    st.session_state['Tipo_negocio_ADV'] = "ABARROTES"
+    st.session_state['tipo_negocio_especificado_ADV'] = ""
+    st.session_state['BimboID_ADV'] = ""
+    st.session_state['blmId_ADV'] = ""
+    st.session_state['InfoCre_ADV'] = "Si"
+    st.session_state['MicroScore_ADV'] = 0
+    st.session_state['ScoreFico_ADV'] = 0
+    st.session_state["INE_ADV"] = False
+    st.session_state["Domicilio_ADV"] = False
+    st.session_state["CURP_ADV"] = False
+    st.session_state["SPEI_ADV"] = False
+    st.session_state["FOTO_ADV"] = "No"
+
     # Quitar bandera
     st.session_state['limpiar_formulario'] = False
 
@@ -910,30 +939,22 @@ else:
                         datos_nuevos["Grupo_nombre"] = grupo_nombre
                         datos_nuevos["Grupo_numero"] = grupo_num
 
-                        # VERIFICAR SI NECESITA REVISIÓN DE HISTORIAL CREDITICIO
-                        if grupo_num in [7, 8]:
-                            # Almacenar datos temporalmente para continuar después
-                            st.session_state['datos_pendientes'] = {
-                                'datos_nuevos': datos_nuevos,
-                                'grupo_num': grupo_num,
-                                'MicroScore': MicroScore
-                            }
-                            st.session_state['requiere_revision'] = True
-                            st.warning("⚠️ Este cliente requiere revisión del historial crediticio antes de continuar.")
-                            st.rerun()
-
-                        # Continuar con el proceso normal
                         Desiscion = asignar_desiscion(grupo_num, MicroScore)
+
                         datos_nuevos['Desiscion'] = Desiscion
 
                         print(Desiscion)
 
                         Min_oferta, Max_oferta = montos_grupo(grupo_num, Desiscion)
+
                         datos_nuevos['Oferta_min'] = Min_oferta
+
                         datos_nuevos['Oferta_max'] = Max_oferta
 
                         Oferta_real = oferta_final(Min_oferta, Max_oferta, Oferta)
+
                         print("Se asigno la funcion de oferta_final")
+
                         datos_nuevos['Oferta_final'] = Oferta_real
 
                         print("Se asigno bien desicion y la oferta real")
@@ -960,108 +981,6 @@ else:
                     except Exception as e:
                         st.error(f"❌ Error al guardar el registro: {e}")
 
-    # Limpiar formulario si se solicitó (MOVER AQUÍ)
-    if st.session_state.get('limpiar_formulario', False):
-        # Resetear valores a los defaults
-        st.session_state['Solicitud'] = 4000
-        st.session_state['edad'] = 18
-        st.session_state['Oferta'] = 0
-        st.session_state['comentarios'] = ""
-        st.session_state['llamada'] = "No"  # Nota: cambiado de 'LLAMADA' a 'llamada'
-        st.session_state['CP'] = ""
-        st.session_state['genero'] = "Masculino"
-        st.session_state['Dependientes'] = "0"
-        st.session_state['Edo_civil'] = "Casado"
-        st.session_state['Tipo_negocio'] = "ABARROTES"
-        st.session_state['tipo_negocio_especificado'] = ""
-        st.session_state['BimboID'] = ""
-        st.session_state['blmId'] = ""
-        st.session_state['InfoCre'] = "Si"
-        st.session_state['MicroScore'] = 0
-        st.session_state['ScoreFico'] = 0
-        st.session_state["INE"] = False
-        st.session_state["Domicilio"] = False
-        st.session_state["CURP"] = False
-        st.session_state["SPEI"] = False
-        st.session_state["FOTO"] = "No"
-        st.session_state['nombre'] = ""  # Agregar este campo que faltaba
-        
-        # Quitar bandera
-        st.session_state['limpiar_formulario'] = False
-
-        # MOSTRAR CHECKBOX DE REVISIÓN SI ES NECESARIO
-        if st.session_state.get('requiere_revision', False):
-            st.markdown("### ⚠️ Revisión Requerida")
-            
-            revision_checkbox = st.checkbox(
-                "✅ He revisado el reporte de historial crediticio", 
-                key="revision_historial"
-            )
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                continuar_btn = st.button("Continuar Proceso", key="continuar_revision")
-                
-            with col2:
-                cancelar_btn = st.button("Cancelar", key="cancelar_revision")
-            
-            if continuar_btn:
-                if revision_checkbox:
-                    # Recuperar datos almacenados
-                    datos_pendientes = st.session_state['datos_pendientes']
-                    datos_nuevos = datos_pendientes['datos_nuevos']
-                    grupo_num = datos_pendientes['grupo_num']
-                    MicroScore = datos_pendientes['MicroScore']
-                    
-                    try:
-                        # Continuar con el procesamiento
-                        Desiscion = asignar_desiscion(grupo_num, MicroScore)
-                        datos_nuevos['Desiscion'] = Desiscion
-
-                        Min_oferta, Max_oferta = montos_grupo(grupo_num, Desiscion)
-                        datos_nuevos['Oferta_min'] = Min_oferta
-                        datos_nuevos['Oferta_max'] = Max_oferta
-
-                        Oferta_real = oferta_final(Min_oferta, Max_oferta, st.session_state.get('Oferta', 0))
-                        datos_nuevos['Oferta_final'] = Oferta_real
-
-                        # Guardar en base de datos
-                        df = cargar_base()
-                        df = pd.concat([df, datos_nuevos], ignore_index=True)
-                        guardar_base(df)
-                        
-                        st.success("✅ Registro guardado correctamente en AWS_S3.")
-
-                        # Preparar datos para mostrar resultado
-                        st.session_state['mostrar_resultado'] = True
-                        st.session_state['solicitud_guardada'] = str(datos_nuevos['Solicitud'].iloc[0])
-                        st.session_state['nombre_guardado'] = datos_nuevos['nombre'].iloc[0]
-                        st.session_state['blmId_guardado'] = str(datos_nuevos['blmId'].iloc[0])
-                        st.session_state['Desicion_guardada'] = str(Desiscion)
-                        st.session_state['Oferta_input'] = str(datos_nuevos['Oferta'].iloc[0])
-                        st.session_state['Oferta_final'] = Oferta_real
-                        st.session_state['Grupo_numero'] = grupo_num
-
-                        # Limpiar estado de revisión
-                        st.session_state['requiere_revision'] = False
-                        if 'datos_pendientes' in st.session_state:
-                            del st.session_state['datos_pendientes']
-                        
-                        st.rerun()
-                        
-                    except Exception as e:
-                        st.error(f"❌ Error al procesar el registro: {e}")
-                else:
-                    st.error("⚠️ Debe marcar la casilla de verificación para continuar.")
-            
-            if cancelar_btn:
-                # Limpiar estado de revisión
-                st.session_state['requiere_revision'] = False
-                if 'datos_pendientes' in st.session_state:
-                    del st.session_state['datos_pendientes']
-                st.rerun()
-
         # Mostrar el contenedor con el resultado si existe
         if 'mostrar_resultado' in st.session_state and st.session_state['mostrar_resultado']:
             with st.container():
@@ -1077,7 +996,7 @@ else:
                 # Agregar validación para grupos 7 y 8
                 grupo_num_value = st.session_state.get('Grupo_numero', None)
                 if grupo_num_value in [7, 8]:
-                    st.success("✅ Historial crediticio revisado")
+                    st.warning("⚠️ Revisar el reporte de historial crediticio")
                 
                 # Mostrar interpretación visual de la probabilidad
                 Desicion_value = st.session_state['Desicion_guardada']
@@ -1088,7 +1007,7 @@ else:
                 
         st.markdown("---")
 
-        if st.button("Volver al inicio", key="volver_inicio_tconecta"):
+        if st.button("Volver al inicio"):
             volver_inicio()
             st.rerun()
 
