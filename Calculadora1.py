@@ -1186,13 +1186,13 @@ else:
 
                         # Guardamos la info en el estado de sesión para mostrar después
                         st.session_state['mostrar_resultado'] = True
-                        st.session_state['solicitud_guardada'] = str(Solicitud)
-                        st.session_state['blmId_guardado'] = str(blmId)
-                        st.session_state['Decil_riesgos_guardada'] = Decil_riesgos
-                        st.session_state['Desicion_guardada'] = str(Desiscion)
-                        st.session_state['Oferta_input'] = Oferta
-                        st.session_state['Oferta_guardada'] = int(Oferta)  # Conversión explícita a entero
-                        st.session_state['Tasa_guardada'] = str(Tasa)      # Conversión explícita a string
+                        st.session_state['solicitud_guardada_ADV'] = str(Solicitud)
+                        st.session_state['blmId_guardado_ADV'] = str(blmId)
+                        st.session_state['Decil_riesgos_guardada_ADV'] = Decil_riesgos
+                        st.session_state['Desicion_guardada_ADV'] = str(Desiscion)
+                        st.session_state['Oferta_input_ADV'] = Oferta
+                        st.session_state['Oferta_guardada_ADV'] = int(Oferta)  # Conversión explícita a entero
+                        st.session_state['Tasa_guardada_ADV'] = str(Tasa)      # Conversión explícita a string
                         # Agregar bandera para indicar que se debe limpiar el formulario
                         st.session_state['limpiar_formulario'] = True
                         
@@ -1207,11 +1207,11 @@ else:
                 st.markdown("### Resultado de la Solicitud")
                 
                 # Usar st.write en lugar de st.markdown para el contenido
-                st.write("**Solicitud:**", st.session_state.get('solicitud_guardada', 'N/A'))
-                st.write("**Nombre:**", st.session_state.get('nombre_guardado', 'N/A'))
-                st.write("**blmId:**", st.session_state.get('blmId_guardado', 'N/A'))
-                st.write("**Tasa:**", st.session_state.get('Tasa_guardada', 'N/A'))
-                st.write("**Oferta:**", f"${int(st.session_state.get('Oferta_input', '0')):,.0f}")
+                st.write("**Solicitud:**", st.session_state.get('solicitud_guardada_ADV', 'N/A'))
+                st.write("**Nombre:**", st.session_state.get('nombre_guardado_ADV', 'N/A'))
+                st.write("**blmId:**", st.session_state.get('blmId_guardado_ADV', 'N/A'))
+                st.write("**Tasa:**", st.session_state.get('Tasa_guardada_ADV', 'N/A'))
+                st.write("**Oferta:**", f"${int(st.session_state.get('Oferta_input_ADV', '0')):,.0f}")
                 
                 # Mostrar interpretación visual de la probabilidad
                 Desicion_value = st.session_state['Desicion_guardada']
