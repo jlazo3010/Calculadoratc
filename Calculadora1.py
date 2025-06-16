@@ -966,6 +966,8 @@ else:
                         guardar_base(df)
                         st.success("✅ Registro guardado correctamente en AWS_S3.")
 
+                        st.write('Grupo_nombre')
+
                         # Guardamos la info en el estado de sesión para mostrar después
                         st.session_state['mostrar_resultado'] = True
                         st.session_state['solicitud_guardada'] = str(Solicitud)
