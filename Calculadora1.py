@@ -536,51 +536,22 @@ def oferta_final(min_oferta, max_oferta, oferta_original):
 ################################# Manejo de la limpieza del formulario
 if 'limpiar_formulario' in st.session_state and st.session_state['limpiar_formulario']:
     # Limpieza para TConecta
-    st.session_state['Solicitud'] = 4000
-    st.session_state['edad'] = 18
-    st.session_state['Oferta'] = 0
-    st.session_state['comentarios'] = ""
-    st.session_state['LLAMADA'] = "No"
-    st.session_state['CP'] = ""
-    st.session_state['genero'] = "Masculino"
-    st.session_state['Dependientes'] = "0"
-    st.session_state['Edo_civil'] = "Casado"
-    st.session_state['Tipo_negocio'] = "ABARROTES"
-    st.session_state['tipo_negocio_especificado'] = ""
-    st.session_state['BimboID'] = ""
-    st.session_state['blmId'] = ""
-    st.session_state['InfoCre'] = "Si"
-    st.session_state['MicroScore'] = 0
-    st.session_state['ScoreFico'] = 0
-    st.session_state["INE"] = False
-    st.session_state["Domicilio"] = False
-    st.session_state["CURP"] = False
-    st.session_state["SPEI"] = False
-    st.session_state["FOTO"] = "No"
-
-    # Limpieza para ADV
-    st.session_state['Solicitud_ADV'] = 0
-    st.session_state['edad_ADV'] = 18
-    st.session_state['Oferta_ADV'] = 0
-    st.session_state['comentarios_ADV'] = ""
-    st.session_state['LLAMADA_ADV'] = "No"
-    st.session_state['CP_ADV'] = ""
-    st.session_state['genero_ADV'] = "Masculino"
-    st.session_state['Dependientes_ADV'] = "0"
-    st.session_state['Edo_civil_ADV'] = "Casado"
-    st.session_state['Tipo_negocio_ADV'] = "ABARROTES"
-    st.session_state['tipo_negocio_especificado_ADV'] = ""
-    st.session_state['BimboID_ADV'] = ""
-    st.session_state['blmId_ADV'] = ""
-    st.session_state['InfoCre_ADV'] = "Si"
-    st.session_state['MicroScore_ADV'] = 0
-    st.session_state['ScoreFico_ADV'] = 0
-    st.session_state["INE_ADV"] = False
-    st.session_state["Domicilio_ADV"] = False
-    st.session_state["CURP_ADV"] = False
-    st.session_state["SPEI_ADV"] = False
-    st.session_state["FOTO_ADV"] = "No"
-
+    for key in ['Solicitud', 'edad', 'Oferta', 'comentarios', 'LLAMADA', 'CP', 
+                'genero', 'Dependientes', 'Edo_civil', 'Tipo_negocio', 
+                'tipo_negocio_especificado', 'BimboID', 'blmId', 'InfoCre', 
+                'MicroScore', 'ScoreFico', 'INE', 'Domicilio', 'CURP', 'SPEI', 'FOTO']:
+        if key in st.session_state:
+            del st.session_state[key]
+    
+    # Limpieza para ADV (similar)
+    for key in ['Solicitud_ADV', 'edad_ADV', 'Oferta_ADV', 'comentarios_ADV', 
+                'LLAMADA_ADV', 'CP_ADV', 'genero_ADV', 'Dependientes_ADV', 
+                'Edo_civil_ADV', 'Tipo_negocio_ADV', 'tipo_negocio_especificado_ADV', 
+                'BimboID_ADV', 'blmId_ADV', 'InfoCre_ADV', 'MicroScore_ADV', 
+                'ScoreFico_ADV', 'INE_ADV', 'Domicilio_ADV', 'CURP_ADV', 'SPEI_ADV', 'FOTO_ADV']:
+        if key in st.session_state:
+            del st.session_state[key]
+    
     # Quitar bandera
     st.session_state['limpiar_formulario'] = False
 
