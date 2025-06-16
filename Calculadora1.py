@@ -902,7 +902,7 @@ else:
 
                         probabilidades = predecir_probabilidades(datos_preprocesados, modelo_cargado)
 
-                        st.success(f"✅ Modelo Interno ejecutado correctamente. Resultado: {float(probabilidades[0]):.2f}")
+                        st.success(f"✅ Modelo Interno ejecutado correctamente. Resultado: {float(probabilidades[0]*100):.1f}%")
 
                         Decil = obtener_decil(probabilidades[0])
 
@@ -920,7 +920,7 @@ else:
                                 resultado = ejecutar_modelo_ais(
                                     nombre_muestra=resultadosAIS
                                 )
-                                st.success(f"✅ Modelo AIS ejecutado correctamente. Resultado: {float(resultado['preds'].iloc[0]):.2f}")
+                                st.success(f"✅ Modelo AIS ejecutado correctamente. Resultado: {float(resultado['preds'].iloc[0]*100):.1f}%")
                         
                             except Exception as e:
                                 st.error(f"❌ Error inesperado durante la ejecución del modelo AIS: {e}")
