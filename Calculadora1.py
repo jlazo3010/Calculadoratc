@@ -939,30 +939,22 @@ else:
                         datos_nuevos["Grupo_nombre"] = grupo_nombre
                         datos_nuevos["Grupo_numero"] = grupo_num
 
-                        # VERIFICAR SI NECESITA REVISIÓN DE HISTORIAL CREDITICIO
-                        if grupo_num in [7, 8]:
-                            # Almacenar datos temporalmente para continuar después
-                            st.session_state['datos_pendientes'] = {
-                                'datos_nuevos': datos_nuevos,
-                                'grupo_num': grupo_num,
-                                'MicroScore': MicroScore
-                            }
-                            st.session_state['requiere_revision'] = True
-                            st.warning("⚠️ Este cliente requiere revisión del historial crediticio antes de continuar.")
-                            st.rerun()
-
-                        # Continuar con el proceso normal
                         Desiscion = asignar_desiscion(grupo_num, MicroScore)
+
                         datos_nuevos['Desiscion'] = Desiscion
 
                         print(Desiscion)
 
                         Min_oferta, Max_oferta = montos_grupo(grupo_num, Desiscion)
+
                         datos_nuevos['Oferta_min'] = Min_oferta
+
                         datos_nuevos['Oferta_max'] = Max_oferta
 
                         Oferta_real = oferta_final(Min_oferta, Max_oferta, Oferta)
+
                         print("Se asigno la funcion de oferta_final")
+
                         datos_nuevos['Oferta_final'] = Oferta_real
 
                         print("Se asigno bien desicion y la oferta real")
@@ -989,75 +981,6 @@ else:
                     except Exception as e:
                         st.error(f"❌ Error al guardar el registro: {e}")
 
-        # MOSTRAR CHECKBOX DE REVISIÓN SI ES NECESARIO
-        if st.session_state.get('requiere_revision', False):
-            st.markdown("### ⚠️ Revisión Requerida")
-            
-            revision_checkbox = st.checkbox(
-                "✅ He revisado el reporte de historial crediticio", 
-                key="revision_historial"
-            )
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                if st.button("Continuar Proceso") and revision_checkbox:
-                    # Recuperar datos almacenados
-                    datos_pendientes = st.session_state['datos_pendientes']
-                    datos_nuevos = datos_pendientes['datos_nuevos']
-                    grupo_num = datos_pendientes['grupo_num']
-                    MicroScore = datos_pendientes['MicroScore']
-                    
-                    try:
-                        # Continuar con el procesamiento
-                        Desiscion = asignar_desiscion(grupo_num, MicroScore)
-                        datos_nuevos['Desiscion'] = Desiscion
-
-                        Min_oferta, Max_oferta = montos_grupo(grupo_num, Desiscion)
-                        datos_nuevos['Oferta_min'] = Min_oferta
-                        datos_nuevos['Oferta_max'] = Max_oferta
-
-                        Oferta_real = oferta_final(Min_oferta, Max_oferta, st.session_state.get('Oferta', 0))
-                        datos_nuevos['Oferta_final'] = Oferta_real
-
-                        # Guardar en base de datos
-                        df = cargar_base()
-                        df = pd.concat([df, datos_nuevos], ignore_index=True)
-                        guardar_base(df)
-                        
-                        st.success("✅ Registro guardado correctamente en AWS_S3.")
-
-                        # Preparar datos para mostrar resultado
-                        st.session_state['mostrar_resultado'] = True
-                        st.session_state['solicitud_guardada'] = str(datos_nuevos['Solicitud'].iloc[0])
-                        st.session_state['nombre_guardado'] = datos_nuevos['nombre'].iloc[0]
-                        st.session_state['blmId_guardado'] = str(datos_nuevos['blmId'].iloc[0])
-                        st.session_state['Desicion_guardada'] = str(Desiscion)
-                        st.session_state['Oferta_input'] = str(datos_nuevos['Oferta'].iloc[0])
-                        st.session_state['Oferta_final'] = Oferta_real
-                        st.session_state['Grupo_numero'] = grupo_num
-
-                        # Limpiar estado de revisión
-                        st.session_state['requiere_revision'] = False
-                        if 'datos_pendientes' in st.session_state:
-                            del st.session_state['datos_pendientes']
-                        
-                        st.rerun()
-                        
-                    except Exception as e:
-                        st.error(f"❌ Error al procesar el registro: {e}")
-                        
-                elif st.button("Continuar Proceso") and not revision_checkbox:
-                    st.error("⚠️ Debe marcar la casilla de verificación para continuar.")
-            
-            with col2:
-                if st.button("Cancelar"):
-                    # Limpiar estado de revisión
-                    st.session_state['requiere_revision'] = False
-                    if 'datos_pendientes' in st.session_state:
-                        del st.session_state['datos_pendientes']
-                    st.rerun()
-
         # Mostrar el contenedor con el resultado si existe
         if 'mostrar_resultado' in st.session_state and st.session_state['mostrar_resultado']:
             with st.container():
@@ -1073,7 +996,7 @@ else:
                 # Agregar validación para grupos 7 y 8
                 grupo_num_value = st.session_state.get('Grupo_numero', None)
                 if grupo_num_value in [7, 8]:
-                    st.success("✅ Historial crediticio revisado")
+                    st.warning("⚠️ Revisar el reporte de historial crediticio")
                 
                 # Mostrar interpretación visual de la probabilidad
                 Desicion_value = st.session_state['Desicion_guardada']
