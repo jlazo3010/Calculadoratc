@@ -807,8 +807,8 @@ else:
                 valido_domicilio = st.checkbox("Validación de Domicilio", key="Domicilio")
                 valido_curp = st.checkbox("Validación de CURP", key="CURP")
                 valido_spei = st.checkbox("Validación de SPEI", key="SPEI")
+                Hist_cred = st.checkbox("Revisión de reporte de historial crediticio", key="RHC")
                 valido_foto = st.selectbox("Oferta corresponde al tamaño del negocio", ["Si", "No", "No se aprecía"],key = "FOTO")
-                Hist_cred = st.checkbox("Revisión del reporte de historial crediticio", key="RHC")
 
                 # Validaciones de campos obligatorios
                 campos_validos = (
@@ -995,11 +995,6 @@ else:
                 st.write("**blmId:**", st.session_state.get('blmId_guardado', 'N/A'))
                 st.write("**Oferta:**", f"${int(st.session_state.get('Oferta_input', '0')):,.0f}")
                 st.write("**Oferta sugerida:**", f"${st.session_state.get('Oferta_final', 0):,.0f}")
-
-                # Agregar validación para grupos 7 y 8
-                grupo_num_value = st.session_state.get('Grupo_numero', None)
-                if grupo_num_value in [7, 8]:
-                    st.warning("⚠️ Revisar el reporte de historial crediticio")
                 
                 # Mostrar interpretación visual de la probabilidad
                 Desicion_value = st.session_state['Desicion_guardada']
