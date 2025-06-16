@@ -960,6 +960,35 @@ else:
                     except Exception as e:
                         st.error(f"❌ Error al guardar el registro: {e}")
 
+    # Limpiar formulario si se solicitó (MOVER AQUÍ)
+    if st.session_state.get('limpiar_formulario', False):
+        # Resetear valores a los defaults
+        st.session_state['Solicitud'] = 4000
+        st.session_state['edad'] = 18
+        st.session_state['Oferta'] = 0
+        st.session_state['comentarios'] = ""
+        st.session_state['llamada'] = "No"  # Nota: cambiado de 'LLAMADA' a 'llamada'
+        st.session_state['CP'] = ""
+        st.session_state['genero'] = "Masculino"
+        st.session_state['Dependientes'] = "0"
+        st.session_state['Edo_civil'] = "Casado"
+        st.session_state['Tipo_negocio'] = "ABARROTES"
+        st.session_state['tipo_negocio_especificado'] = ""
+        st.session_state['BimboID'] = ""
+        st.session_state['blmId'] = ""
+        st.session_state['InfoCre'] = "Si"
+        st.session_state['MicroScore'] = 0
+        st.session_state['ScoreFico'] = 0
+        st.session_state["INE"] = False
+        st.session_state["Domicilio"] = False
+        st.session_state["CURP"] = False
+        st.session_state["SPEI"] = False
+        st.session_state["FOTO"] = "No"
+        st.session_state['nombre'] = ""  # Agregar este campo que faltaba
+        
+        # Quitar bandera
+        st.session_state['limpiar_formulario'] = False
+
         # MOSTRAR CHECKBOX DE REVISIÓN SI ES NECESARIO
         if st.session_state.get('requiere_revision', False):
             st.markdown("### ⚠️ Revisión Requerida")
