@@ -1001,7 +1001,13 @@ else:
             col1, col2 = st.columns(2)
             
             with col1:
-                if st.button("Continuar Proceso") and revision_checkbox:
+                continuar_btn = st.button("Continuar Proceso", key="continuar_revision")
+                
+            with col2:
+                cancelar_btn = st.button("Cancelar", key="cancelar_revision")
+            
+            if continuar_btn:
+                if revision_checkbox:
                     # Recuperar datos almacenados
                     datos_pendientes = st.session_state['datos_pendientes']
                     datos_nuevos = datos_pendientes['datos_nuevos']
@@ -1046,17 +1052,15 @@ else:
                         
                     except Exception as e:
                         st.error(f"❌ Error al procesar el registro: {e}")
-                        
-                elif st.button("Continuar Proceso") and not revision_checkbox:
+                else:
                     st.error("⚠️ Debe marcar la casilla de verificación para continuar.")
             
-            with col2:
-                if st.button("Cancelar"):
-                    # Limpiar estado de revisión
-                    st.session_state['requiere_revision'] = False
-                    if 'datos_pendientes' in st.session_state:
-                        del st.session_state['datos_pendientes']
-                    st.rerun()
+            if cancelar_btn:
+                # Limpiar estado de revisión
+                st.session_state['requiere_revision'] = False
+                if 'datos_pendientes' in st.session_state:
+                    del st.session_state['datos_pendientes']
+                st.rerun()
 
         # Mostrar el contenedor con el resultado si existe
         if 'mostrar_resultado' in st.session_state and st.session_state['mostrar_resultado']:
@@ -1084,7 +1088,7 @@ else:
                 
         st.markdown("---")
 
-        if st.button("Volver al inicio"):
+        if st.button("Volver al inicio", key="volver_inicio_tconecta"):
             volver_inicio()
             st.rerun()
 
