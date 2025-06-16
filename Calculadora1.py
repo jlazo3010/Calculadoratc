@@ -555,6 +555,7 @@ if 'limpiar_formulario' in st.session_state and st.session_state['limpiar_formul
     st.session_state["INE"] = False
     st.session_state["Domicilio"] = False
     st.session_state["CURP"] = False
+    st.session_state["RHC"] = False
     st.session_state["SPEI"] = False
     st.session_state["FOTO"] = "No"
 
@@ -807,6 +808,7 @@ else:
                 valido_curp = st.checkbox("Validación de CURP", key="CURP")
                 valido_spei = st.checkbox("Validación de SPEI", key="SPEI")
                 valido_foto = st.selectbox("Oferta corresponde al tamaño del negocio", ["Si", "No", "No se aprecía"],key = "FOTO")
+                Hist_cred = st.checkbox("Revisión del reporte de historial crediticio", key="RHC")
 
                 # Validaciones de campos obligatorios
                 campos_validos = (
@@ -822,6 +824,7 @@ else:
                     genero and
                     Oferta and
                     Dependientes and
+                    Hist_cred and
                     Edo_civil and
                     (Tipo_negocio != "SIN INFORMACION" or (Tipo_negocio == "SIN INFORMACION" and 'tipo_negocio_especificado' in locals() and tipo_negocio_especificado)) and
                     BimboID and
