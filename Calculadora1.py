@@ -966,8 +966,6 @@ else:
                         guardar_base(df)
                         st.success("✅ Registro guardado correctamente en AWS_S3.")
 
-                        st.write('Grupo_nombre')
-
                         # Guardamos la info en el estado de sesión para mostrar después
                         st.session_state['mostrar_resultado'] = True
                         st.session_state['solicitud_guardada'] = str(Solicitud)
@@ -976,7 +974,7 @@ else:
                         st.session_state['Desicion_guardada'] = str(Desiscion)
                         st.session_state['Oferta_input'] = str(Oferta)
                         st.session_state['Oferta_final'] = Oferta_real
-                        st.session_state['Grupo_nombre'] = str(grupo_nombre)
+                        st.session_state['Grupo_nombre_guardado'] = str(grupo_nombre)
                         
                         # Agregar bandera para indicar que se debe limpiar el formulario
                         st.session_state['limpiar_formulario'] = True
@@ -994,7 +992,7 @@ else:
                 # Usar st.write en lugar de st.markdown para el contenido
                 st.write("**Solicitud:**", st.session_state.get('solicitud_guardada', 'N/A'))
                 st.write("**Nombre:**", st.session_state.get('nombre_guardado', 'N/A'))
-                st.write("**Grupo de riesgo:**", st.session_state.get('Grupo_nombre', 'N/A'))
+                st.write("**Grupo de riesgo:**", st.session_state.get('Grupo_nombre_guardado', 'N/A'))
                 st.write("**blmId:**", st.session_state.get('blmId_guardado', 'N/A'))
                 st.write("**Oferta:**", f"${int(st.session_state.get('Oferta_input', '0')):,.0f}")
                 st.write("**Oferta sugerida:**", f"${st.session_state.get('Oferta_final', 0):,.0f}")
