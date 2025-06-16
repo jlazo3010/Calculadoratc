@@ -974,7 +974,7 @@ else:
                         st.session_state['Desicion_guardada'] = str(Desiscion)
                         st.session_state['Oferta_input'] = str(Oferta)
                         st.session_state['Oferta_final'] = Oferta_real
-                        st.session_state['Grupo_nombre'] = grupo_nombre
+                        st.session_state['Grupo_nombre'] = str(grupo_nombre)
                         
                         # Agregar bandera para indicar que se debe limpiar el formulario
                         st.session_state['limpiar_formulario'] = True
